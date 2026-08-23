@@ -43,6 +43,7 @@ targets:
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
         UIStatusBarHidden: false
+        UILaunchScreen: {}
         UIRequiresFullScreen: true
         GIDClientID: $(GOOGLE_CLIENT_ID)
         CFBundleURLTypes:
