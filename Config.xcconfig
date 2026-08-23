@@ -1,0 +1,6 @@
+// Google OAuth configuration.
+// 1. Create an iOS OAuth Client ID at https://console.cloud.google.com/apis/credentials
+//    (enable the Google Drive API on the project).
+// 2. Paste the client id below, and the reversed client id as the URL scheme.
+GOOGLE_CLIENT_ID = YOUR_CLIENT_ID.apps.googleusercontent.com
+GOOGLE_URL_SCHEME = com.googleusercontent.apps.YOUR_CLIENT_ID

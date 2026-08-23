@@ -1,0 +1,456 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0AF6F0D668B1C46B0E52FEFB /* DriveService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47C695DB7BE0044C160E464F /* DriveService.swift */; };
+		205258C07696700A48A65BAF /* AlbumListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1CFA1C925C8073D60920192 /* AlbumListView.swift */; };
+		26473257DDDF62AAED7406B5 /* WorldMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 819F96FA1681D75C64444004 /* WorldMapView.swift */; };
+		3FC19FA4F4CF222DA061A731 /* SyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D3326BBEF11B3B29FE1DEB6 /* SyncService.swift */; };
+		70A2E709D56C4E529D8A3554 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = ABA3902CDD62FD4EF297F43C /* GoogleSignInSwift */; };
+		7815DAA31476EE1FC125B20A /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7143A318622759509E0DE20 /* Models.swift */; };
+		81471E846B6C456C9FDF6B56 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C604B71AD0C4A168DE843BA /* AuthService.swift */; };
+		838972386D8A315A160862B2 /* MockData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A4474FA291C56EAD7E60EB9 /* MockData.swift */; };
+		8DDE662FACC17D15FF681D7F /* CountryGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7A1B811A4F83AB52DB2E350 /* CountryGridView.swift */; };
+		AA13211FFE807415665DD313 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81D6AD18D5B91CF610242549 /* SettingsView.swift */; };
+		B00ABEAABFB4F76FBB8292F5 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE341503665DAF0B47A0C774 /* LoginView.swift */; };
+		B5BA051CAB44B4CAE0EAABCD /* SlideshowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 157A85FC24F0AD2C0E8F9F4C /* SlideshowView.swift */; };
+		B6325038C1CFB2837E62D3C4 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = E8FDD57756CF5C0961FFDD9C /* GoogleSignIn */; };
+		D2F1DD789A5F81C5293F9DD1 /* countries.geo.json in Resources */ = {isa = PBXBuildFile; fileRef = D0DFAEF0E24BB78E28C00F05 /* countries.geo.json */; };
+		DDD4F52F95D6CEA5348D3AA1 /* TravelogApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8373B6E62D1C6D273C2C06B3 /* TravelogApp.swift */; };
+		FE692D4F029D74431862227B /* MediaCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62459A5F2D7A3C5124E054BC /* MediaCache.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		157A85FC24F0AD2C0E8F9F4C /* SlideshowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SlideshowView.swift; sourceTree = "<group>"; };
+		1D3326BBEF11B3B29FE1DEB6 /* SyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncService.swift; sourceTree = "<group>"; };
+		47C695DB7BE0044C160E464F /* DriveService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveService.swift; sourceTree = "<group>"; };
+		4C604B71AD0C4A168DE843BA /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
+		5458D4926B07CC42E983916A /* Travelog.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Travelog.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		62459A5F2D7A3C5124E054BC /* MediaCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaCache.swift; sourceTree = "<group>"; };
+		819F96FA1681D75C64444004 /* WorldMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorldMapView.swift; sourceTree = "<group>"; };
+		81D6AD18D5B91CF610242549 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		8373B6E62D1C6D273C2C06B3 /* TravelogApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TravelogApp.swift; sourceTree = "<group>"; };
+		8A4474FA291C56EAD7E60EB9 /* MockData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockData.swift; sourceTree = "<group>"; };
+		AE341503665DAF0B47A0C774 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		B1CFA1C925C8073D60920192 /* AlbumListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumListView.swift; sourceTree = "<group>"; };
+		B7143A318622759509E0DE20 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		D0DFAEF0E24BB78E28C00F05 /* countries.geo.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = countries.geo.json; sourceTree = "<group>"; };
+		D7A1B811A4F83AB52DB2E350 /* CountryGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountryGridView.swift; sourceTree = "<group>"; };
+		"TEMP_45924A17-3BF5-489F-8B43-7CCBB093DACF" /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		65C82CCEEF41525E4BC08B40 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B6325038C1CFB2837E62D3C4 /* GoogleSignIn in Frameworks */,
+				70A2E709D56C4E529D8A3554 /* GoogleSignInSwift in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		129029B6F87E9F83E8C5011E /* Travelog */ = {
+			isa = PBXGroup;
+			children = (
+				6A04D3B2AA249C171D3C1D7B /* Resources */,
+				C94FFDB89CB60237FCE29419 /* Sources */,
+			);
+			path = Travelog;
+			sourceTree = "<group>";
+		};
+		26040B391B0D56A25D76A5D1 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				5458D4926B07CC42E983916A /* Travelog.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		2DCF8F217454157445D2451C /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				B1CFA1C925C8073D60920192 /* AlbumListView.swift */,
+				D7A1B811A4F83AB52DB2E350 /* CountryGridView.swift */,
+				AE341503665DAF0B47A0C774 /* LoginView.swift */,
+				81D6AD18D5B91CF610242549 /* SettingsView.swift */,
+				157A85FC24F0AD2C0E8F9F4C /* SlideshowView.swift */,
+				819F96FA1681D75C64444004 /* WorldMapView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		6A04D3B2AA249C171D3C1D7B /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				D0DFAEF0E24BB78E28C00F05 /* countries.geo.json */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		7319096A878062345909B8C7 = {
+			isa = PBXGroup;
+			children = (
+				129029B6F87E9F83E8C5011E /* Travelog */,
+				26040B391B0D56A25D76A5D1 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		73E823E8A87EAB2FCE4FD013 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				4C604B71AD0C4A168DE843BA /* AuthService.swift */,
+				47C695DB7BE0044C160E464F /* DriveService.swift */,
+				62459A5F2D7A3C5124E054BC /* MediaCache.swift */,
+				8A4474FA291C56EAD7E60EB9 /* MockData.swift */,
+				1D3326BBEF11B3B29FE1DEB6 /* SyncService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		C94FFDB89CB60237FCE29419 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				8373B6E62D1C6D273C2C06B3 /* TravelogApp.swift */,
+				FBD24F6FD4CECC9BC383F3CD /* Models */,
+				73E823E8A87EAB2FCE4FD013 /* Services */,
+				2DCF8F217454157445D2451C /* Views */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		FBD24F6FD4CECC9BC383F3CD /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				B7143A318622759509E0DE20 /* Models.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		"TEMP_9BECE938-4885-4CA8-9223-19B0CAA769A3" /* travelog */ = {
+			isa = PBXGroup;
+			children = (
+				"TEMP_45924A17-3BF5-489F-8B43-7CCBB093DACF" /* Config.xcconfig */,
+			);
+			path = travelog;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		4AD31A57AD7452405403424E /* Travelog */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E31C436A345AA5FD7A3EB0CB /* Build configuration list for PBXNativeTarget "Travelog" */;
+			buildPhases = (
+				88B1BA6F5F06F7F69F10901E /* Sources */,
+				C89415A112FCC6A84E7CCF50 /* Resources */,
+				65C82CCEEF41525E4BC08B40 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Travelog;
+			packageProductDependencies = (
+				E8FDD57756CF5C0961FFDD9C /* GoogleSignIn */,
+				ABA3902CDD62FD4EF297F43C /* GoogleSignInSwift */,
+			);
+			productName = Travelog;
+			productReference = 5458D4926B07CC42E983916A /* Travelog.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		4D078A34D8ECED6CE12AB7E9 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					4AD31A57AD7452405403424E = {
+						DevelopmentTeam = ADPUGXVDZQ;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = C5A94C89B8B133714B2C8352 /* Build configuration list for PBXProject "Travelog" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 7319096A878062345909B8C7;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				2275681CC690896E5D4AD09D /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 26040B391B0D56A25D76A5D1 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				4AD31A57AD7452405403424E /* Travelog */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		C89415A112FCC6A84E7CCF50 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D2F1DD789A5F81C5293F9DD1 /* countries.geo.json in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		88B1BA6F5F06F7F69F10901E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				205258C07696700A48A65BAF /* AlbumListView.swift in Sources */,
+				81471E846B6C456C9FDF6B56 /* AuthService.swift in Sources */,
+				8DDE662FACC17D15FF681D7F /* CountryGridView.swift in Sources */,
+				0AF6F0D668B1C46B0E52FEFB /* DriveService.swift in Sources */,
+				B00ABEAABFB4F76FBB8292F5 /* LoginView.swift in Sources */,
+				FE692D4F029D74431862227B /* MediaCache.swift in Sources */,
+				838972386D8A315A160862B2 /* MockData.swift in Sources */,
+				7815DAA31476EE1FC125B20A /* Models.swift in Sources */,
+				AA13211FFE807415665DD313 /* SettingsView.swift in Sources */,
+				B5BA051CAB44B4CAE0EAABCD /* SlideshowView.swift in Sources */,
+				3FC19FA4F4CF222DA061A731 /* SyncService.swift in Sources */,
+				DDD4F52F95D6CEA5348D3AA1 /* TravelogApp.swift in Sources */,
+				26473257DDDF62AAED7406B5 /* WorldMapView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		4C82268EC18626AFEA87046A /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = "TEMP_45924A17-3BF5-489F-8B43-7CCBB093DACF" /* Config.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = ADPUGXVDZQ;
+				INFOPLIST_FILE = Travelog/Info.plist;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ca.thedailygain.Travelog;
+				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		ADB2DB370A1913EF04317362 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = "TEMP_45924A17-3BF5-489F-8B43-7CCBB093DACF" /* Config.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = ADPUGXVDZQ;
+				INFOPLIST_FILE = Travelog/Info.plist;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ca.thedailygain.Travelog;
+				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		D156C3528C53BB8B92D89633 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		F6A82CCF2246E53C6ED7D092 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		C5A94C89B8B133714B2C8352 /* Build configuration list for PBXProject "Travelog" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D156C3528C53BB8B92D89633 /* Debug */,
+				F6A82CCF2246E53C6ED7D092 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		E31C436A345AA5FD7A3EB0CB /* Build configuration list for PBXNativeTarget "Travelog" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				ADB2DB370A1913EF04317362 /* Debug */,
+				4C82268EC18626AFEA87046A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		2275681CC690896E5D4AD09D /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		ABA3902CDD62FD4EF297F43C /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2275681CC690896E5D4AD09D /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
+		};
+		E8FDD57756CF5C0961FFDD9C /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2275681CC690896E5D4AD09D /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 4D078A34D8ECED6CE12AB7E9 /* Project object */;
+}
