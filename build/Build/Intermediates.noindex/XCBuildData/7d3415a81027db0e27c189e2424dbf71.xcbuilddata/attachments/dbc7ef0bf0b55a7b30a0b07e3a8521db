@@ -1,4 +1,0 @@
-module GoogleUtilities_Logger {
-umbrella "/Users/tdg/Personal/travelog/build/SourcePackages/checkouts/GoogleUtilities/GoogleUtilities/Logger/Public"
-export *
-}

@@ -2,3 +2,4 @@
 *.xcresult
 xcuserdata/
 DerivedData/
+build/

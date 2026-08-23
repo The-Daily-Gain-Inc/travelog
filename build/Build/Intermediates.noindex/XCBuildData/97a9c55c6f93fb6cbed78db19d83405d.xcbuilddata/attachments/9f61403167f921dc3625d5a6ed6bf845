@@ -1,4 +1,0 @@
-module AppAuth {
-umbrella "/Users/tdg/Personal/travelog/build/SourcePackages/checkouts/AppAuth-iOS/Sources/AppAuth"
-export *
-}
