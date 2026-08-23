@@ -1,0 +1,31 @@
+dependencies: \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/GoogleSignIn-iOS/GoogleSignIn/Sources/GIDSignIn.m \
+  /Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/GoogleSignIn.build/Debug-iphonesimulator/GoogleSignIn.build/DerivedSources/resource_bundle_accessor.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/System/Library/Frameworks/Foundation.framework/Modules/module.modulemap \
+  /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/usr/include/DarwinFoundation1.modulemap \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/GoogleSignIn-iOS/GoogleSignIn/Sources/Public/GoogleSignIn/GIDSignIn.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/System/Library/Frameworks/UIKit.framework/Modules/module.modulemap \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/GoogleSignIn-iOS/GoogleSignIn/Sources/GIDSignIn_Private.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/GoogleSignIn-iOS/GoogleSignIn/Sources/Public/GoogleSignIn/GIDConfiguration.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/GoogleSignIn-iOS/GoogleSignIn/Sources/Public/GoogleSignIn/GIDGoogleUser.h \
+  /Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/GeneratedModuleMaps-iphonesimulator/GTMSessionFetcherCore.modulemap \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/GoogleSignIn-iOS/GoogleSignIn/Sources/Public/GoogleSignIn/GIDProfileData.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/GoogleSignIn-iOS/GoogleSignIn/Sources/Public/GoogleSignIn/GIDSignInResult.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/GoogleSignIn-iOS/GoogleSignIn/Sources/GIDEMMSupport.h \
+  /Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/GeneratedModuleMaps-iphonesimulator/GTMAppAuth.modulemap \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/GoogleSignIn-iOS/GoogleSignIn/Sources/GIDSignInInternalOptions.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/GoogleSignIn-iOS/GoogleSignIn/Sources/GIDSignInPreferences.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/GoogleSignIn-iOS/GoogleSignIn/Sources/GIDCallbackQueue.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/GoogleSignIn-iOS/GoogleSignIn/Sources/GIDScopes.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/GoogleSignIn-iOS/GoogleSignIn/Sources/GIDSignInCallbackSchemes.h \
+  /Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/GeneratedModuleMaps-iphonesimulator/AppCheckCore.modulemap \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/GoogleSignIn-iOS/GoogleSignIn/Sources/GIDAppCheck/Implementations/GIDAppCheck.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/GoogleSignIn-iOS/GoogleSignIn/Sources/GIDAppCheck/UI/GIDActivityIndicatorViewController.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/GoogleSignIn-iOS/GoogleSignIn/Sources/GIDAuthStateMigration.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/GoogleSignIn-iOS/GoogleSignIn/Sources/GIDEMMErrorHandler.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/GoogleSignIn-iOS/GoogleSignIn/Sources/GIDTimedLoader/GIDTimedLoader.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/GoogleSignIn-iOS/GoogleSignIn/Sources/GIDGoogleUser_Private.h \
+  /Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/GeneratedModuleMaps-iphonesimulator/AppAuth.modulemap \
+  /Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/GeneratedModuleMaps-iphonesimulator/AppAuthCore.modulemap \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/GoogleSignIn-iOS/GoogleSignIn/Sources/GIDProfileData_Private.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/GoogleSignIn-iOS/GoogleSignIn/Sources/GIDSignInResult_Private.h

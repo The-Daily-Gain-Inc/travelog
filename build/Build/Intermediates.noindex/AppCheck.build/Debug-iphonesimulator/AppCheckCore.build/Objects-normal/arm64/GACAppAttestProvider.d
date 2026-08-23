@@ -1,0 +1,26 @@
+dependencies: \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/app-check/AppCheckCore/Sources/AppAttestProvider/GACAppAttestProvider.m \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/app-check/AppCheckCore/Sources/Public/AppCheckCore/GACAppAttestProvider.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/System/Library/Frameworks/Foundation.framework/Modules/module.modulemap \
+  /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/usr/include/DarwinFoundation1.modulemap \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/app-check/AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckProvider.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/app-check/AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckAvailability.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/app-check/AppCheckCore/Sources/AppAttestProvider/DCAppAttestService+GACAppAttestService.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/System/Library/Frameworks/DeviceCheck.framework/Modules/module.modulemap \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/app-check/AppCheckCore/Sources/AppAttestProvider/GACAppAttestService.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/promises/Sources/FBLPromises/include/module.modulemap \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/app-check/AppCheckCore/Sources/AppAttestProvider/API/GACAppAttestAPIService.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/app-check/AppCheckCore/Sources/AppAttestProvider/API/GACAppAttestAttestationResponse.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/app-check/AppCheckCore/Sources/AppAttestProvider/GACAppAttestProviderState.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/app-check/AppCheckCore/Sources/AppAttestProvider/Storage/GACAppAttestArtifactStorage.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/app-check/AppCheckCore/Sources/AppAttestProvider/Storage/GACAppAttestKeyIDStorage.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/app-check/AppCheckCore/Sources/Core/GACAppCheckLogger+Internal.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/app-check/AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrors.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/app-check/AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckLogger.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/app-check/AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/app-check/AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckAPIService.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/app-check/AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckBackoffWrapper.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/app-check/AppCheckCore/Sources/Core/Utils/GACAppCheckCryptoUtils.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/app-check/AppCheckCore/Sources/AppAttestProvider/Errors/GACAppAttestRejectionError.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/app-check/AppCheckCore/Sources/Core/Errors/GACAppCheckHTTPError.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/app-check/AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckErrorUtil.h

@@ -35,14 +35,34 @@ struct RootView: View {
 }
 
 struct MainTabView: View {
+    @AppStorage("demoMode") private var demoMode = false
+    @Environment(\.modelContext) private var modelContext
+
     var body: some View {
-        TabView {
+        content.task {
+            // Demo mode seeds itself if the sample albums aren't there yet.
+            guard demoMode else { return }
+            let albums = (try? modelContext.fetch(FetchDescriptor<Album>())) ?? []
+            if !albums.contains(where: { $0.driveId.hasPrefix(MockData.idPrefix) }) {
+                try? MockData.seed(into: modelContext)
+            }
+        }
+    }
+
+    // Selectable for UI automation via the -initialTab launch argument.
+    @State private var selectedTab = UserDefaults.standard.string(forKey: "initialTab") ?? "slideshow"
+
+    private var content: some View {
+        TabView(selection: $selectedTab) {
             AlbumListView()
                 .tabItem { Label("Slideshow", systemImage: "play.rectangle.on.rectangle") }
+                .tag("slideshow")
             WorldMapView()
                 .tabItem { Label("World Map", systemImage: "globe.europe.africa.fill") }
+                .tag("map")
             SettingsView()
                 .tabItem { Label("Settings", systemImage: "gearshape") }
+                .tag("settings")
         }
     }
 }

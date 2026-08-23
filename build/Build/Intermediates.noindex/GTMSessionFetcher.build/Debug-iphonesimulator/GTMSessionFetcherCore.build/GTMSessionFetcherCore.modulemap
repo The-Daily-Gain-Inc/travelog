@@ -1,0 +1,4 @@
+module GTMSessionFetcherCore {
+umbrella "/Users/tdg/Personal/travelog/build/SourcePackages/checkouts/gtm-session-fetcher/Sources/Core/Public"
+export *
+}

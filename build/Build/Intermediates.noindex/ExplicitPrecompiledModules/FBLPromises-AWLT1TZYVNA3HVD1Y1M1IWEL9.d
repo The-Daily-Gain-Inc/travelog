@@ -1,0 +1,23 @@
+moduledependenciestarget: \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/promises/Sources/FBLPromises/include/module.modulemap \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/promises/Sources/FBLPromises/include/FBLPromises.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/promises/Sources/FBLPromises/include/FBLPromise+All.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/promises/Sources/FBLPromises/include/FBLPromise.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/promises/Sources/FBLPromises/include/FBLPromiseError.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Foundation.framework/Modules/module.modulemap \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/promises/Sources/FBLPromises/include/FBLPromise+Always.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/promises/Sources/FBLPromises/include/FBLPromise+Any.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/promises/Sources/FBLPromises/include/FBLPromise+Async.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/promises/Sources/FBLPromises/include/FBLPromise+Await.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/promises/Sources/FBLPromises/include/FBLPromise+Catch.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/promises/Sources/FBLPromises/include/FBLPromise+Delay.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/promises/Sources/FBLPromises/include/FBLPromise+Do.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/promises/Sources/FBLPromises/include/FBLPromise+Race.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/promises/Sources/FBLPromises/include/FBLPromise+Recover.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/promises/Sources/FBLPromises/include/FBLPromise+Reduce.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/promises/Sources/FBLPromises/include/FBLPromise+Retry.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/promises/Sources/FBLPromises/include/FBLPromise+Then.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/promises/Sources/FBLPromises/include/FBLPromise+Timeout.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/promises/Sources/FBLPromises/include/FBLPromise+Validate.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/promises/Sources/FBLPromises/include/FBLPromise+Wrap.h \
+  /Users/tdg/Personal/travelog/build/SourcePackages/checkouts/promises/Sources/FBLPromises/include/FBLPromise+Testing.h

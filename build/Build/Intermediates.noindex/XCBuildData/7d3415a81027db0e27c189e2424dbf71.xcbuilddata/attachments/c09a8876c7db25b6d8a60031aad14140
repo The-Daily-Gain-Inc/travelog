@@ -1,0 +1,139 @@
+{
+  "" : {
+    "diagnostics" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/Travelog-primary.dia",
+    "emit-module-dependencies" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/Travelog-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/Travelog-primary-emit-module.dia",
+    "pch" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/Travelog-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/Travelog-primary.swiftdeps"
+  },
+  "/Users/tdg/Personal/travelog/Travelog/Sources/Models/Models.swift" : {
+    "const-values" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/Models.swiftconstvalues",
+    "dependencies" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/Models.d",
+    "diagnostics" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/Models.dia",
+    "index-unit-output-path" : "/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/Models.o",
+    "llvm-bc" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/Models.bc",
+    "object" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/Models.o",
+    "swift-dependencies" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/Models.swiftdeps",
+    "swiftmodule" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/Models~partial.swiftmodule"
+  },
+  "/Users/tdg/Personal/travelog/Travelog/Sources/Services/AuthService.swift" : {
+    "const-values" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/AuthService.swiftconstvalues",
+    "dependencies" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/AuthService.d",
+    "diagnostics" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/AuthService.dia",
+    "index-unit-output-path" : "/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/AuthService.o",
+    "llvm-bc" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/AuthService.bc",
+    "object" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/AuthService.o",
+    "swift-dependencies" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/AuthService.swiftdeps",
+    "swiftmodule" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/AuthService~partial.swiftmodule"
+  },
+  "/Users/tdg/Personal/travelog/Travelog/Sources/Services/DriveService.swift" : {
+    "const-values" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/DriveService.swiftconstvalues",
+    "dependencies" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/DriveService.d",
+    "diagnostics" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/DriveService.dia",
+    "index-unit-output-path" : "/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/DriveService.o",
+    "llvm-bc" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/DriveService.bc",
+    "object" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/DriveService.o",
+    "swift-dependencies" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/DriveService.swiftdeps",
+    "swiftmodule" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/DriveService~partial.swiftmodule"
+  },
+  "/Users/tdg/Personal/travelog/Travelog/Sources/Services/MediaCache.swift" : {
+    "const-values" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/MediaCache.swiftconstvalues",
+    "dependencies" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/MediaCache.d",
+    "diagnostics" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/MediaCache.dia",
+    "index-unit-output-path" : "/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/MediaCache.o",
+    "llvm-bc" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/MediaCache.bc",
+    "object" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/MediaCache.o",
+    "swift-dependencies" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/MediaCache.swiftdeps",
+    "swiftmodule" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/MediaCache~partial.swiftmodule"
+  },
+  "/Users/tdg/Personal/travelog/Travelog/Sources/Services/MockData.swift" : {
+    "const-values" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/MockData.swiftconstvalues",
+    "dependencies" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/MockData.d",
+    "diagnostics" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/MockData.dia",
+    "index-unit-output-path" : "/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/MockData.o",
+    "llvm-bc" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/MockData.bc",
+    "object" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/MockData.o",
+    "swift-dependencies" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/MockData.swiftdeps",
+    "swiftmodule" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/MockData~partial.swiftmodule"
+  },
+  "/Users/tdg/Personal/travelog/Travelog/Sources/Services/SyncService.swift" : {
+    "const-values" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/SyncService.swiftconstvalues",
+    "dependencies" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/SyncService.d",
+    "diagnostics" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/SyncService.dia",
+    "index-unit-output-path" : "/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/SyncService.o",
+    "llvm-bc" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/SyncService.bc",
+    "object" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/SyncService.o",
+    "swift-dependencies" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/SyncService.swiftdeps",
+    "swiftmodule" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/SyncService~partial.swiftmodule"
+  },
+  "/Users/tdg/Personal/travelog/Travelog/Sources/TravelogApp.swift" : {
+    "const-values" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/TravelogApp.swiftconstvalues",
+    "dependencies" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/TravelogApp.d",
+    "diagnostics" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/TravelogApp.dia",
+    "index-unit-output-path" : "/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/TravelogApp.o",
+    "llvm-bc" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/TravelogApp.bc",
+    "object" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/TravelogApp.o",
+    "swift-dependencies" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/TravelogApp.swiftdeps",
+    "swiftmodule" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/TravelogApp~partial.swiftmodule"
+  },
+  "/Users/tdg/Personal/travelog/Travelog/Sources/Views/AlbumListView.swift" : {
+    "const-values" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/AlbumListView.swiftconstvalues",
+    "dependencies" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/AlbumListView.d",
+    "diagnostics" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/AlbumListView.dia",
+    "index-unit-output-path" : "/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/AlbumListView.o",
+    "llvm-bc" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/AlbumListView.bc",
+    "object" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/AlbumListView.o",
+    "swift-dependencies" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/AlbumListView.swiftdeps",
+    "swiftmodule" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/AlbumListView~partial.swiftmodule"
+  },
+  "/Users/tdg/Personal/travelog/Travelog/Sources/Views/CountryGridView.swift" : {
+    "const-values" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/CountryGridView.swiftconstvalues",
+    "dependencies" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/CountryGridView.d",
+    "diagnostics" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/CountryGridView.dia",
+    "index-unit-output-path" : "/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/CountryGridView.o",
+    "llvm-bc" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/CountryGridView.bc",
+    "object" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/CountryGridView.o",
+    "swift-dependencies" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/CountryGridView.swiftdeps",
+    "swiftmodule" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/CountryGridView~partial.swiftmodule"
+  },
+  "/Users/tdg/Personal/travelog/Travelog/Sources/Views/LoginView.swift" : {
+    "const-values" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/LoginView.swiftconstvalues",
+    "dependencies" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/LoginView.d",
+    "diagnostics" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/LoginView.dia",
+    "index-unit-output-path" : "/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/LoginView.o",
+    "llvm-bc" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/LoginView.bc",
+    "object" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/LoginView.o",
+    "swift-dependencies" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/LoginView.swiftdeps",
+    "swiftmodule" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/LoginView~partial.swiftmodule"
+  },
+  "/Users/tdg/Personal/travelog/Travelog/Sources/Views/SettingsView.swift" : {
+    "const-values" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/SettingsView.swiftconstvalues",
+    "dependencies" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/SettingsView.d",
+    "diagnostics" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/SettingsView.dia",
+    "index-unit-output-path" : "/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/SettingsView.o",
+    "llvm-bc" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/SettingsView.bc",
+    "object" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/SettingsView.o",
+    "swift-dependencies" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/SettingsView.swiftdeps",
+    "swiftmodule" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/SettingsView~partial.swiftmodule"
+  },
+  "/Users/tdg/Personal/travelog/Travelog/Sources/Views/SlideshowView.swift" : {
+    "const-values" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/SlideshowView.swiftconstvalues",
+    "dependencies" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/SlideshowView.d",
+    "diagnostics" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/SlideshowView.dia",
+    "index-unit-output-path" : "/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/SlideshowView.o",
+    "llvm-bc" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/SlideshowView.bc",
+    "object" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/SlideshowView.o",
+    "swift-dependencies" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/SlideshowView.swiftdeps",
+    "swiftmodule" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/SlideshowView~partial.swiftmodule"
+  },
+  "/Users/tdg/Personal/travelog/Travelog/Sources/Views/WorldMapView.swift" : {
+    "const-values" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/WorldMapView.swiftconstvalues",
+    "dependencies" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/WorldMapView.d",
+    "diagnostics" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/WorldMapView.dia",
+    "index-unit-output-path" : "/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/WorldMapView.o",
+    "llvm-bc" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/WorldMapView.bc",
+    "object" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/WorldMapView.o",
+    "swift-dependencies" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/WorldMapView.swiftdeps",
+    "swiftmodule" : "/Users/tdg/Personal/travelog/build/Build/Intermediates.noindex/Travelog.build/Debug-iphonesimulator/Travelog.build/Objects-normal/arm64/WorldMapView~partial.swiftmodule"
+  }
+}

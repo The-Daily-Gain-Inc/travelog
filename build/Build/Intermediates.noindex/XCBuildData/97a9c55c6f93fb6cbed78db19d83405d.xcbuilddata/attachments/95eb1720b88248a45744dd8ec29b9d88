@@ -1,0 +1,4 @@
+module AppCheckCore {
+umbrella header "/Users/tdg/Personal/travelog/build/SourcePackages/checkouts/app-check/AppCheckCore/Sources/Public/AppCheckCore/AppCheckCore.h"
+export *
+}
