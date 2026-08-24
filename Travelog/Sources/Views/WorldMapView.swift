@@ -866,6 +866,7 @@ struct PhotoClusterSheet: View {
     let cluster: PhotoCluster
     @Environment(\.dismiss) private var dismiss
     @State private var showSlideshow = false
+    @State private var startItem: MediaItem?
 
     private let columns = [GridItem(.adaptive(minimum: 140, maximum: 220), spacing: 12)]
 
@@ -874,7 +875,10 @@ struct PhotoClusterSheet: View {
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 12) {
                     ForEach(cluster.items.sorted { $0.createdTime < $1.createdTime }) { item in
-                        ClusterThumbnail(item: item)
+                        Button { startItem = item } label: {
+                            ClusterThumbnail(item: item)
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
                 .padding(16)
@@ -897,6 +901,13 @@ struct PhotoClusterSheet: View {
                 SlideshowView(
                     title: cluster.items.first?.album?.name ?? String(localized: "This spot"),
                     items: cluster.items
+                )
+            }
+            .fullScreenCover(item: $startItem) { item in
+                SlideshowView(
+                    title: cluster.items.first?.album?.name ?? String(localized: "This spot"),
+                    items: cluster.items,
+                    startItem: item
                 )
             }
         }

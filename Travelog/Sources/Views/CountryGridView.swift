@@ -6,6 +6,7 @@ struct CountryGridView: View {
     let album: Album
     @Environment(\.dismiss) private var dismiss
     @State private var showSlideshow = false
+    @State private var startItem: MediaItem?
     @State private var regionGroups: [(name: String, items: [MediaItem])] = []
     @State private var postcard: UIImage?
     @AppStorage("showHiddenItems") private var showHiddenItems = false
@@ -27,7 +28,7 @@ struct CountryGridView: View {
                             Section {
                                 LazyVGrid(columns: columns, spacing: 4) {
                                     ForEach(group.items) { item in
-                                        MediaThumbnail(item: item)
+                                        TappableThumbnail(item: item) { startItem = item }
                                             .aspectRatio(1, contentMode: .fill)
                                     }
                                 }
@@ -47,7 +48,7 @@ struct CountryGridView: View {
                 } else {
                     LazyVGrid(columns: columns, spacing: 4) {
                         ForEach(items) { item in
-                            MediaThumbnail(item: item)
+                            TappableThumbnail(item: item) { startItem = item }
                                 .aspectRatio(1, contentMode: .fill)
                         }
                     }
@@ -91,6 +92,9 @@ struct CountryGridView: View {
             }
             .fullScreenCover(isPresented: $showSlideshow) {
                 SlideshowView(album: album)
+            }
+            .fullScreenCover(item: $startItem) { item in
+                SlideshowView(album: album, startItem: item)
             }
             .task { await buildRegionGroups() }
             .task { await buildPostcard() }
@@ -191,6 +195,34 @@ struct PostcardView: View {
             RoundedRectangle(cornerRadius: 14)
                 .fill(.white.opacity(0.08))
                 .frame(width: 374, height: 280)
+        }
+    }
+}
+
+/// Grid thumbnail that opens the slideshow at its photo, with a long-press
+/// menu for favorite/hide.
+struct TappableThumbnail: View {
+    let item: MediaItem
+    let onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            MediaThumbnail(item: item)
+        }
+        .buttonStyle(.plain)
+        .contextMenu {
+            Button {
+                item.isFavorite.toggle()
+            } label: {
+                Label(item.isFavorite ? "Remove Favorite" : "Favorite",
+                      systemImage: item.isFavorite ? "heart.slash" : "heart")
+            }
+            Button {
+                item.isHidden.toggle()
+            } label: {
+                Label(item.isHidden ? "Unhide" : "Hide",
+                      systemImage: item.isHidden ? "eye" : "eye.slash")
+            }
         }
     }
 }

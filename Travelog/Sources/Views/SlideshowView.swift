@@ -14,19 +14,22 @@ struct SlideshowView: View {
     /// When true, reaching the end of the last slide dismisses the show
     /// instead of looping — used by the map's World Tour to hop countries.
     let closeAtEnd: Bool
+    /// Starts the show on this item instead of the first one.
+    let startItem: MediaItem?
 
-    init(album: Album, closeAtEnd: Bool = false) {
+    init(album: Album, closeAtEnd: Bool = false, startItem: MediaItem? = nil) {
         self.init(title: album.name, items: album.items, countryName: album.name,
-                  closeAtEnd: closeAtEnd)
+                  closeAtEnd: closeAtEnd, startItem: startItem)
     }
 
     init(title: String, items: [MediaItem], countryName: String? = nil,
-         forceShuffle: Bool = false, closeAtEnd: Bool = false) {
+         forceShuffle: Bool = false, closeAtEnd: Bool = false, startItem: MediaItem? = nil) {
         self.title = title
         self.baseItems = items
         self.countryName = countryName
         self.forceShuffle = forceShuffle
         self.closeAtEnd = closeAtEnd
+        self.startItem = startItem
     }
 
     @Environment(\.dismiss) private var dismiss
@@ -41,6 +44,8 @@ struct SlideshowView: View {
     @State private var isScrubbing = false
     @State private var kenBurnsActive = false
     @State private var caption: String?
+    @State private var showInfo = false
+    @State private var infoPlace: String?
     @State private var shuffleSeed = UInt64.random(in: 1...UInt64.max)
     @State private var advanceTask: Task<Void, Never>?
     @State private var hideControlsTask: Task<Void, Never>?
@@ -49,6 +54,8 @@ struct SlideshowView: View {
     @AppStorage("showsMiniMap") private var showsMiniMap = true
     @AppStorage("skipLivePhotos") private var skipLivePhotos = true
     @AppStorage("kenBurns") private var kenBurns = true
+    @AppStorage("transitionStyle") private var transitionStyle = "fade"
+    @AppStorage("muteVideos") private var muteVideos = false
     @AppStorage("showCaptions") private var showCaptions = true
     @AppStorage("shuffleSlides") private var shuffleSlides = false
     @AppStorage("displayMaxPixel") private var displayMaxPixel: Double = 0
@@ -101,7 +108,7 @@ struct SlideshowView: View {
                     .scaleEffect(kenBurnsActive ? 1.09 : 1.0, anchor: kenBurnsAnchor)
                     .animation(kenBurnsActive ? .linear(duration: slideDuration + 1) : nil, value: kenBurnsActive)
                     .ignoresSafeArea()
-                    .transition(.opacity)
+                    .transition(photoTransition)
                     .id(index)
             } else if loadError {
                 ContentUnavailableView("Couldn’t load this item", systemImage: "exclamationmark.triangle")
@@ -140,13 +147,36 @@ struct SlideshowView: View {
                 if value.translation.width < 0 { advance(by: 1) } else { advance(by: -1) }
             }
         )
-        .task { await show(index: 0) }
+        .task {
+            let start = startItem.flatMap { s in items.firstIndex { $0.driveId == s.driveId } } ?? 0
+            await show(index: start)
+        }
+        .focusable()
+        .focusEffectDisabled()
+        .onKeyPress(.leftArrow) { advance(by: -1); return .handled }
+        .onKeyPress(.rightArrow) { advance(by: 1); return .handled }
+        .onKeyPress(.space) { togglePlay(); return .handled }
+        .onChange(of: muteVideos) { player?.isMuted = muteVideos }
         .onAppear { UIApplication.shared.isIdleTimerDisabled = true }
         .onDisappear {
             UIApplication.shared.isIdleTimerDisabled = false
             advanceTask?.cancel()
             hideControlsTask?.cancel()
             player?.pause()
+        }
+    }
+
+    private var photoTransition: AnyTransition {
+        switch transitionStyle {
+        case "slide":
+            .asymmetric(
+                insertion: .move(edge: .trailing).combined(with: .opacity),
+                removal: .move(edge: .leading).combined(with: .opacity)
+            )
+        case "zoom":
+            .scale(scale: 1.18).combined(with: .opacity)
+        default:
+            .opacity
         }
     }
 
@@ -160,6 +190,13 @@ struct SlideshowView: View {
     private var overlayControls: some View {
         VStack(spacing: 0) {
             topBar
+            if showInfo, let item = currentItem {
+                HStack {
+                    infoPanel(for: item)
+                        .padding(.leading, 24)
+                    Spacer()
+                }
+            }
             Spacer()
             if showsMiniMap, let coordinate = currentCoordinate {
                 HStack {
@@ -179,6 +216,14 @@ struct SlideshowView: View {
             Button { dismiss() } label: {
                 Image(systemName: "xmark.circle.fill")
                     .font(.system(size: 40))
+                    .foregroundStyle(.white.opacity(0.85))
+            }
+            Button {
+                withAnimation { showInfo.toggle() }
+                scheduleControlsAutoHide()
+            } label: {
+                Image(systemName: showInfo ? "info.circle.fill" : "info.circle")
+                    .font(.system(size: 30))
                     .foregroundStyle(.white.opacity(0.85))
             }
             Spacer()
@@ -258,6 +303,7 @@ struct SlideshowView: View {
             Toggle("Ken Burns effect", isOn: $kenBurns)
             Toggle("Captions", isOn: $showCaptions)
             Toggle("Skip Live Photo clips", isOn: $skipLivePhotos)
+            Toggle("Mute videos", isOn: $muteVideos)
         } label: {
             Label("\(Int(slideDuration)) s", systemImage: "timer")
                 .font(.subheadline.bold())
@@ -268,6 +314,34 @@ struct SlideshowView: View {
         }
         .onChange(of: skipLivePhotos) { advance(to: index) }
         .onChange(of: shuffleSlides) { advance(to: 0) }
+    }
+
+    private func infoPanel(for item: MediaItem) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label(item.name, systemImage: item.isVideo ? "video" : "photo")
+                .font(.subheadline.bold())
+            Label(item.createdTime.formatted(date: .long, time: .shortened), systemImage: "calendar")
+            if let infoPlace {
+                Label(infoPlace, systemImage: "mappin.and.ellipse")
+            }
+            if let lat = item.latitude, let lon = item.longitude {
+                Label(String(format: "%.4f, %.4f", lat, lon), systemImage: "location")
+            }
+            if item.sizeBytes > 0 {
+                Label(ByteCountFormatter.string(fromByteCount: item.sizeBytes, countStyle: .file),
+                      systemImage: "internaldrive")
+            }
+        }
+        .font(.subheadline)
+        .foregroundStyle(.white.opacity(0.92))
+        .padding(16)
+        .background(.ultraThinMaterial.opacity(0.8), in: RoundedRectangle(cornerRadius: 16))
+        .environment(\.colorScheme, .dark)
+        .task(id: item.driveId) {
+            infoPlace = nil
+            guard let lat = item.latitude, let lon = item.longitude else { return }
+            infoPlace = await PlaceLookup.shared.place(latitude: lat, longitude: lon)
+        }
     }
 
     private func controlButton(_ symbol: String, size: CGFloat, action: @escaping () -> Void) -> some View {
@@ -367,6 +441,7 @@ struct SlideshowView: View {
             }
             guard !Task.isCancelled else { return }
             let p = AVPlayer(url: url)
+            p.isMuted = muteVideos
             player = p
             if isPlaying { p.play() }
             NotificationCenter.default.addObserver(

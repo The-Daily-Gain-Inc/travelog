@@ -13,6 +13,8 @@ struct SettingsView: View {
     @AppStorage("shuffleSlides") private var shuffleSlides = false
     @AppStorage("skipLivePhotos") private var skipLivePhotos = true
     @AppStorage("showHiddenItems") private var showHiddenItems = false
+    @AppStorage("transitionStyle") private var transitionStyle = "fade"
+    @AppStorage("muteVideos") private var muteVideos = false
     @AppStorage("showTripLines") private var showTripLines = true
     @AppStorage("ambientMode") private var ambientMode = false
     @AppStorage("ambientDelayMinutes") private var ambientDelayMinutes = 5.0
@@ -98,7 +100,13 @@ struct SettingsView: View {
                         Text("2K").tag(2048.0)
                         Text("HD").tag(1280.0)
                     }
+                    Picker("Transition", selection: $transitionStyle) {
+                        Text("Fade").tag("fade")
+                        Text("Slide").tag("slide")
+                        Text("Zoom").tag("zoom")
+                    }
                     Toggle("Ken Burns effect", isOn: $kenBurns)
+                    Toggle("Mute videos", isOn: $muteVideos)
                     Toggle("Captions (place & date)", isOn: $showCaptions)
                     Toggle("Shuffle", isOn: $shuffleSlides)
                     Toggle("Skip Live Photo clips", isOn: $skipLivePhotos)

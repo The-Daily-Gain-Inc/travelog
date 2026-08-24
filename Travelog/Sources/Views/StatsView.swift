@@ -3,8 +3,16 @@ import SwiftData
 import Charts
 
 /// Stats tab: travel numbers derived from the synced library.
+struct YearRecap: Identifiable {
+    let year: Int
+    let items: [MediaItem]
+    var id: Int { year }
+}
+
 struct StatsView: View {
     @Query private var albums: [Album]
+    @State private var showPassport = false
+    @State private var recap: YearRecap?
 
     private var allItems: [MediaItem] { albums.flatMap(\.items) }
     private var photoCount: Int { allItems.filter { !$0.isVideo }.count }
@@ -108,6 +116,36 @@ struct StatsView: View {
                 }
 
                 if !visitedFeatures.isEmpty {
+                    Section {
+                        Button {
+                            showPassport = true
+                        } label: {
+                            Label("Open My Passport", systemImage: "book.closed.fill")
+                                .font(.headline)
+                        }
+                    }
+
+                    Section("Year in Review") {
+                        ForEach(photosPerYear.reversed(), id: \.year) { entry in
+                            Button {
+                                recap = yearRecap(for: entry.year)
+                            } label: {
+                                HStack {
+                                    Text(String(entry.year))
+                                        .font(.headline)
+                                    Text("\(entry.count) memories · \(countriesInYear(entry.year)) countries")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                    Spacer()
+                                    Image(systemName: "play.circle.fill")
+                                        .font(.title2)
+                                        .foregroundStyle(.orange)
+                                }
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+
                     Section("Continents") {
                         ForEach(continentBreakdown, id: \.name) { entry in
                             VStack(alignment: .leading, spacing: 6) {
@@ -164,6 +202,98 @@ struct StatsView: View {
                 }
             }
             .navigationTitle("Stats")
+            .sheet(isPresented: $showPassport) {
+                PassportView(albums: albums)
+            }
+            .fullScreenCover(item: $recap) { recap in
+                SlideshowView(
+                    title: String(localized: "\(String(recap.year)) in Review"),
+                    items: recap.items,
+                    forceShuffle: true
+                )
+            }
         }
+    }
+
+    private func yearRecap(for year: Int) -> YearRecap {
+        let calendar = Calendar.current
+        let items = allItems.filter { calendar.component(.year, from: $0.createdTime) == year }
+        return YearRecap(year: year, items: items)
+    }
+
+    private func countriesInYear(_ year: Int) -> Int {
+        let calendar = Calendar.current
+        let visited = albums.filter { album in
+            album.items.contains { calendar.component(.year, from: $0.createdTime) == year }
+        }
+        return Set(visited.compactMap { WorldGeometry.feature(for: $0)?.id }).count
+    }
+}
+
+/// Passport-style page of stamps: one per visited country with the year of
+/// the first visit.
+struct PassportView: View {
+    let albums: [Album]
+    @Environment(\.dismiss) private var dismiss
+
+    private var stamps: [(feature: CountryFeature, name: String, year: Int)] {
+        var seen = Set<String>()
+        return albums.compactMap { album -> (CountryFeature, String, Int)? in
+            guard let feature = WorldGeometry.feature(for: album),
+                  seen.insert(feature.id).inserted,
+                  let first = album.items.map(\.createdTime).min() else { return nil }
+            return (feature, album.name, Calendar.current.component(.year, from: first))
+        }
+        .sorted { $0.2 < $1.2 }
+    }
+
+    private let columns = [GridItem(.adaptive(minimum: 190, maximum: 250), spacing: 22)]
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                LazyVGrid(columns: columns, spacing: 26) {
+                    ForEach(Array(stamps.enumerated()), id: \.element.feature.id) { i, stamp in
+                        VStack(spacing: 6) {
+                            Text(WorldGeometry.flag(for: stamp.feature) ?? "🌍")
+                                .font(.system(size: 44))
+                            Text(stamp.name.uppercased())
+                                .font(.system(.subheadline, design: .serif).bold())
+                                .multilineTextAlignment(.center)
+                            Text(verbatim: "★ \(String(stamp.year)) ★")
+                                .font(.system(.caption, design: .serif))
+                        }
+                        .foregroundStyle(stampColor(i))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 20)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 14)
+                                .strokeBorder(stampColor(i), style: StrokeStyle(lineWidth: 2.5, dash: [7, 4]))
+                        )
+                        .rotationEffect(.degrees(Double((i * 7) % 11) - 5))
+                        .padding(6)
+                    }
+                }
+                .padding(24)
+            }
+            .background(Color(red: 0.96, green: 0.94, blue: 0.88))
+            .navigationTitle(Text("My Passport"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { dismiss() } label: { Image(systemName: "xmark.circle.fill") }
+                }
+            }
+        }
+    }
+
+    private func stampColor(_ index: Int) -> Color {
+        let palette: [Color] = [
+            Color(red: 0.55, green: 0.15, blue: 0.20),
+            Color(red: 0.10, green: 0.30, blue: 0.55),
+            Color(red: 0.15, green: 0.42, blue: 0.25),
+            Color(red: 0.45, green: 0.25, blue: 0.55),
+        ]
+        return palette[index % palette.count]
     }
 }

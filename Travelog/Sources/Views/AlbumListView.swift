@@ -5,11 +5,35 @@ import SwiftData
 struct AlbumListView: View {
     @Query(sort: \Album.name) private var albums: [Album]
     @EnvironmentObject private var sync: SyncService
+    @EnvironmentObject private var auth: AuthService
+    @Environment(\.modelContext) private var modelContext
     @ObservedObject private var downloads = DownloadManager.shared
     @State private var slideshowAlbum: Album?
     @State private var surpriseMe = false
     @State private var favoritesShow = false
     @State private var onThisDayShow = false
+    @State private var searchText = ""
+    @AppStorage("albumSort") private var albumSort = "name"
+    @AppStorage("rootFolderName") private var rootFolderName = "Travelog"
+
+    /// Albums filtered by search text and ordered by the chosen sort.
+    private var displayAlbums: [Album] {
+        var list = searchText.isEmpty ? albums : albums.filter {
+            WorldGeometry.normalize($0.name).contains(WorldGeometry.normalize(searchText))
+        }
+        switch albumSort {
+        case "count":
+            list.sort { $0.items.count > $1.items.count }
+        case "recent":
+            list.sort {
+                ($0.items.map(\.createdTime).max() ?? .distantPast) >
+                ($1.items.map(\.createdTime).max() ?? .distantPast)
+            }
+        default:
+            list.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        }
+        return list
+    }
 
     private let columns = [GridItem(.adaptive(minimum: 280, maximum: 400), spacing: 20)]
 
@@ -59,7 +83,7 @@ struct AlbumListView: View {
                         .onTapGesture { onThisDayShow = true }
                     }
                     LazyVGrid(columns: columns, spacing: 20) {
-                        ForEach(albums) { album in
+                        ForEach(displayAlbums) { album in
                             Button { slideshowAlbum = album } label: {
                                 AlbumCard(album: album, downloadProgress: downloads.progress[album.driveId])
                             }
@@ -78,8 +102,25 @@ struct AlbumListView: View {
                 }
             }
             .navigationTitle("Albums")
+            .searchable(text: $searchText, prompt: Text("Search countries"))
+            .refreshable {
+                if auth.isSignedIn {
+                    await sync.sync(rootFolderName: rootFolderName, context: modelContext)
+                }
+            }
             .toolbar {
                 if !albums.isEmpty {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Menu {
+                            Picker("Sort by", selection: $albumSort) {
+                                Label("Name", systemImage: "textformat").tag("name")
+                                Label("Photo count", systemImage: "number").tag("count")
+                                Label("Most recent", systemImage: "clock").tag("recent")
+                            }
+                        } label: {
+                            Label("Sort", systemImage: "arrow.up.arrow.down")
+                        }
+                    }
                     ToolbarItem(placement: .topBarTrailing) {
                         Button {
                             surpriseMe = true
