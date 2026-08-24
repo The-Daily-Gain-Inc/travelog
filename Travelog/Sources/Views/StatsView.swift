@@ -12,6 +12,7 @@ struct YearRecap: Identifiable {
 struct StatsView: View {
     @Query private var albums: [Album]
     @State private var showPassport = false
+    @State private var showQuiz = false
     @State private var recap: YearRecap?
 
     private var allItems: [MediaItem] { albums.flatMap(\.items) }
@@ -140,6 +141,12 @@ struct StatsView: View {
                             Label("Open My Passport", systemImage: "book.closed.fill")
                                 .font(.headline)
                         }
+                        Button {
+                            showQuiz = true
+                        } label: {
+                            Label("Play: Where Was This?", systemImage: "questionmark.app.fill")
+                                .font(.headline)
+                        }
                     }
 
                     Section("Year in Review") {
@@ -221,6 +228,9 @@ struct StatsView: View {
             .navigationTitle("Stats")
             .sheet(isPresented: $showPassport) {
                 PassportView(albums: albums)
+            }
+            .sheet(isPresented: $showQuiz) {
+                QuizView(albums: albums)
             }
             .fullScreenCover(item: $recap) { recap in
                 SlideshowView(

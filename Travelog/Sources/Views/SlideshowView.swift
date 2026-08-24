@@ -49,6 +49,9 @@ struct SlideshowView: View {
     @State private var slideStart: Date?
     @State private var zoom: CGFloat = 1
     @GestureState private var pinch: CGFloat = 1
+    @State private var heartBurst = false
+    @AppStorage("videoLimitSeconds") private var videoLimitSeconds: Double = 0
+    @AppStorage("sleepTimerMinutes") private var sleepTimerMinutes: Double = 0
     @State private var shuffleSeed = UInt64.random(in: 1...UInt64.max)
     @State private var advanceTask: Task<Void, Never>?
     @State private var hideControlsTask: Task<Void, Never>?
@@ -145,6 +148,15 @@ struct SlideshowView: View {
                 .transition(.opacity)
             }
 
+            if heartBurst {
+                Image(systemName: "heart.fill")
+                    .font(.system(size: 130))
+                    .foregroundStyle(.red)
+                    .shadow(radius: 18)
+                    .transition(.scale(scale: 0.3).combined(with: .opacity))
+                    .allowsHitTesting(false)
+            }
+
             if showControls {
                 overlayControls
             }
@@ -170,6 +182,14 @@ struct SlideshowView: View {
         .statusBarHidden(true)
         .persistentSystemOverlays(.hidden)
         .contentShape(Rectangle())
+        .onTapGesture(count: 2) {
+            currentItem?.isFavorite = true
+            withAnimation(.spring(duration: 0.35)) { heartBurst = true }
+            Task {
+                try? await Task.sleep(nanoseconds: 700_000_000)
+                withAnimation(.easeOut(duration: 0.3)) { heartBurst = false }
+            }
+        }
         .onTapGesture { toggleControls() }
         .gesture(
             DragGesture(minimumDistance: 40).onEnded { value in
@@ -179,6 +199,13 @@ struct SlideshowView: View {
         .task {
             let start = startItem.flatMap { s in items.firstIndex { $0.driveId == s.driveId } } ?? 0
             await show(index: start)
+        }
+        .task {
+            // Sleep timer: end the show after the configured stretch.
+            guard sleepTimerMinutes > 0 else { return }
+            try? await Task.sleep(nanoseconds: UInt64(sleepTimerMinutes * 60 * 1_000_000_000))
+            guard !Task.isCancelled else { return }
+            dismiss()
         }
         .focusable()
         .focusEffectDisabled()
@@ -235,9 +262,32 @@ struct SlideshowView: View {
                         .padding(.bottom, 16)
                 }
             }
+            filmstrip
             bottomBar
         }
         .transition(.opacity)
+    }
+
+    /// Tappable strip of upcoming/past thumbnails.
+    private var filmstrip: some View {
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                LazyHStack(spacing: 6) {
+                    ForEach(Array(items.enumerated()), id: \.element.driveId) { i, item in
+                        FilmstripThumb(item: item, isCurrent: i == index)
+                            .id(i)
+                            .onTapGesture { advance(to: i) }
+                    }
+                }
+                .padding(.horizontal, 24)
+            }
+            .frame(height: 62)
+            .padding(.bottom, 6)
+            .onAppear { proxy.scrollTo(index, anchor: .center) }
+            .onChange(of: index) {
+                withAnimation { proxy.scrollTo(index, anchor: .center) }
+            }
+        }
     }
 
     private var topBar: some View {
@@ -482,6 +532,15 @@ struct SlideshowView: View {
             ) { _ in
                 Task { @MainActor in advance(by: 1) }
             }
+            // Optionally cap long videos so tours and photo-frame keep moving.
+            if videoLimitSeconds > 0 {
+                let shownIndex = newIndex
+                advanceTask = Task {
+                    try? await Task.sleep(nanoseconds: UInt64(videoLimitSeconds * 1_000_000_000))
+                    guard !Task.isCancelled, index == shownIndex, isPlaying else { return }
+                    advance(by: 1)
+                }
+            }
         } else {
             guard let loaded = try? await MediaCache.shared.displayImage(
                 for: (item.driveId, item.name), maxPixel: displayMaxPixel
@@ -513,6 +572,34 @@ struct SlideshowView: View {
                index == shownIndex {
                 caption = "\(place) · \(date)"
             }
+        }
+    }
+}
+
+struct FilmstripThumb: View {
+    let item: MediaItem
+    let isCurrent: Bool
+    @State private var image: UIImage?
+
+    var body: some View {
+        ZStack {
+            Rectangle().fill(.black.opacity(0.4))
+            if let image {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+            }
+        }
+        .frame(width: 62, height: 54)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .strokeBorder(isCurrent ? Color.appAccent : .white.opacity(0.25),
+                              lineWidth: isCurrent ? 2.5 : 1)
+        )
+        .task {
+            guard image == nil else { return }
+            image = try? await MediaCache.shared.thumbnail(for: (item.driveId, item.name), maxPixel: 150)
         }
     }
 }

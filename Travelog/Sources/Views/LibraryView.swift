@@ -8,6 +8,7 @@ struct LibraryView: View {
     @AppStorage("showHiddenItems") private var showHiddenItems = false
     @State private var startItem: MediaItem?
     @State private var highlight: Highlight?
+    @State private var searchText = ""
 
     struct Highlight: Identifiable {
         let id: String
@@ -18,6 +19,11 @@ struct LibraryView: View {
     private var allItems: [MediaItem] {
         albums.flatMap(\.items)
             .filter { showHiddenItems || !$0.isHidden }
+            .filter { item in
+                searchText.isEmpty
+                    || WorldGeometry.normalize(item.name).contains(WorldGeometry.normalize(searchText))
+                    || WorldGeometry.normalize(item.album?.name ?? "").contains(WorldGeometry.normalize(searchText))
+            }
             .sorted { $0.createdTime > $1.createdTime }
     }
 
@@ -123,6 +129,7 @@ struct LibraryView: View {
                 }
             }
             .navigationTitle("Photos")
+            .searchable(text: $searchText, prompt: Text("Search photos and countries"))
             .fullScreenCover(item: $startItem) { item in
                 SlideshowView(title: String(localized: "Photos"), items: allItems, startItem: item)
             }

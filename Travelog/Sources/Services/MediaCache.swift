@@ -112,6 +112,25 @@ actor MediaCache {
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
     }
 
+    /// Deletes the oldest cached files until the cache fits under `maxBytes`.
+    func enforceLimit(maxBytes: Int64) {
+        guard maxBytes > 0 else { return }
+        let keys: [URLResourceKey] = [.fileSizeKey, .contentModificationDateKey]
+        var files = ((try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: keys)) ?? [])
+            .compactMap { url -> (url: URL, size: Int64, date: Date)? in
+                guard let values = try? url.resourceValues(forKeys: Set(keys)) else { return nil }
+                return (url, Int64(values.fileSize ?? 0), values.contentModificationDate ?? .distantPast)
+            }
+        var total = files.reduce(Int64(0)) { $0 + $1.size }
+        guard total > maxBytes else { return }
+        files.sort { $0.date < $1.date }
+        for file in files {
+            guard total > maxBytes else { break }
+            try? FileManager.default.removeItem(at: file.url)
+            total -= file.size
+        }
+    }
+
     func sizeOnDisk() -> Int64 {
         let files = (try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: [.fileSizeKey])) ?? []
         return files.reduce(0) { $0 + Int64((try? $1.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0) }

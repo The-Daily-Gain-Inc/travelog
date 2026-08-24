@@ -228,13 +228,14 @@ struct PhotoCluster: Identifiable {
 /// grouped into clusters that split apart as you zoom in).
 struct WorldMapView: View {
     enum MapMode: String, CaseIterable, Identifiable {
-        case countries, regions, photos
+        case countries, regions, photos, heat
         var id: String { rawValue }
         var label: LocalizedStringKey {
             switch self {
             case .countries: "Countries"
             case .regions: "Regions"
             case .photos: "Photos"
+            case .heat: "Heat"
             }
         }
     }
@@ -279,6 +280,8 @@ struct WorldMapView: View {
     @State private var lastTourAlbumId: String?
     @State private var tourQueue: [String] = []
     @State private var tourTask: Task<Void, Never>?
+    @State private var tourPath: [CLLocationCoordinate2D] = []
+    @State private var lastTourCenter: CLLocationCoordinate2D?
     @State private var showVisitedList = false
     @State private var mapShareImage: UIImage?
     @State private var buildingShareImage = false
@@ -372,6 +375,23 @@ struct WorldMapView: View {
         NavigationStack {
             MapReader { proxy in
                 Map(position: $camera) {
+                    if touring, tourPath.count == 2 {
+                        MapPolyline(coordinates: tourPath)
+                            .stroke(.white.opacity(0.85),
+                                    style: StrokeStyle(lineWidth: 3, lineCap: .round, dash: [10, 8]))
+                    }
+                    if mode == .heat {
+                        let maxCount = regionClusters.map(\.items.count).max() ?? 1
+                        ForEach(regionClusters) { cluster in
+                            let weight = Double(cluster.items.count) / Double(maxCount)
+                            MapCircle(center: cluster.coordinate,
+                                      radius: 120_000 + weight * 320_000)
+                                .foregroundStyle(Color.appAccent.opacity(0.18 + weight * 0.45))
+                            MapCircle(center: cluster.coordinate,
+                                      radius: 40_000 + weight * 90_000)
+                                .foregroundStyle(Color.appAccent.opacity(0.55 + weight * 0.4))
+                        }
+                    }
                     if mode == .regions {
                         ForEach(regionClusters) { cluster in
                             MapCircle(center: cluster.coordinate,
@@ -454,7 +474,7 @@ struct WorldMapView: View {
                            let album = albumsByFeatureId[country.id] {
                             selectedAlbum = album
                         }
-                    case .regions:
+                    case .regions, .heat:
                         selectCluster(nearest: coord, in: regionClusters)
                     case .photos:
                         selectCluster(nearest: coord, in: photoClusters)
@@ -491,6 +511,8 @@ struct WorldMapView: View {
                         Label("\(regionClusters.count) areas explored", systemImage: "map")
                     case .photos:
                         Label("\(locatedItems.count) photos with location", systemImage: "mappin.and.ellipse")
+                    case .heat:
+                        Label("\(locatedItems.count) photos · heat by density", systemImage: "flame")
                     }
                 }
                 .font(.subheadline.bold())
@@ -700,6 +722,8 @@ struct WorldMapView: View {
         tourController.isTouring = false
         tourTask?.cancel()
         withAnimation { tourCard = nil }
+        tourPath = []
+        lastTourCenter = nil
         withAnimation(.easeInOut(duration: 1.5)) { camera = .rect(.world) }
     }
 
@@ -736,6 +760,10 @@ struct WorldMapView: View {
             return
         }
         lastTourAlbumId = entry.album.driveId
+        if let previous = lastTourCenter {
+            withAnimation { tourPath = [previous, center] }
+        }
+        lastTourCenter = center
         withAnimation { tourCard = entry }
         withAnimation(.easeInOut(duration: 2.5)) {
             camera = .camera(MapCamera(centerCoordinate: center, distance: 2_600_000))
@@ -778,7 +806,7 @@ struct WorldMapView: View {
                 }
             }
             .pickerStyle(.segmented)
-            .frame(width: 340)
+            .frame(width: 420)
 
             Button {
                 touring ? stopTour() : startTour()

@@ -9,6 +9,7 @@ struct CountryGridView: View {
     @State private var startItem: MediaItem?
     @State private var regionGroups: [(name: String, items: [MediaItem])] = []
     @State private var postcard: UIImage?
+    @State private var collage: UIImage?
     @AppStorage("showHiddenItems") private var showHiddenItems = false
 
     private let columns = [GridItem(.adaptive(minimum: 160, maximum: 240), spacing: 4)]
@@ -90,16 +91,33 @@ struct CountryGridView: View {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Close") { dismiss() }
                 }
-                if let postcard {
+                if postcard != nil || collage != nil {
                     ToolbarItem(placement: .topBarTrailing) {
-                        ShareLink(
-                            item: Image(uiImage: postcard),
-                            preview: SharePreview(
-                                Text("Postcard from \(album.name)"),
-                                image: Image(uiImage: postcard)
-                            )
-                        ) {
-                            Label("Share Postcard", systemImage: "square.and.arrow.up")
+                        Menu {
+                            if let postcard {
+                                ShareLink(
+                                    item: Image(uiImage: postcard),
+                                    preview: SharePreview(
+                                        Text("Postcard from \(album.name)"),
+                                        image: Image(uiImage: postcard)
+                                    )
+                                ) {
+                                    Label("Share Postcard", systemImage: "envelope")
+                                }
+                            }
+                            if let collage {
+                                ShareLink(
+                                    item: Image(uiImage: collage),
+                                    preview: SharePreview(
+                                        Text("\(album.name) collage"),
+                                        image: Image(uiImage: collage)
+                                    )
+                                ) {
+                                    Label("Share Collage", systemImage: "square.grid.3x3")
+                                }
+                            }
+                        } label: {
+                            Label("Share", systemImage: "square.and.arrow.up")
                         }
                     }
                 }
@@ -167,6 +185,44 @@ struct CountryGridView: View {
         let renderer = ImageRenderer(content: view)
         renderer.scale = 2
         postcard = renderer.uiImage
+        await buildCollage()
+    }
+
+    /// 3×3 photo collage rendered offscreen.
+    private func buildCollage() async {
+        let photoItems = items.filter { !$0.isVideo }.prefix(9)
+        guard photoItems.count >= 4 else { return }
+        var thumbs: [UIImage] = []
+        for item in photoItems {
+            if let img = try? await MediaCache.shared.thumbnail(for: (item.driveId, item.name), maxPixel: 500) {
+                thumbs.append(img)
+            }
+        }
+        guard thumbs.count >= 4 else { return }
+        let cell: CGFloat = 396, spacing: CGFloat = 6
+        let size = CGSize(width: cell * 3 + spacing * 4, height: cell * 3 + spacing * 4)
+        let renderer = UIGraphicsImageRenderer(size: size)
+        collage = renderer.image { ctx in
+            UIColor.black.setFill()
+            ctx.fill(CGRect(origin: .zero, size: size))
+            for (i, thumb) in thumbs.enumerated() {
+                let row = CGFloat(i / 3), col = CGFloat(i % 3)
+                let rect = CGRect(x: spacing + col * (cell + spacing),
+                                  y: spacing + row * (cell + spacing),
+                                  width: cell, height: cell)
+                ctx.cgContext.saveGState()
+                UIBezierPath(roundedRect: rect, cornerRadius: 14).addClip()
+                // Aspect-fill the square cell.
+                let scale = max(rect.width / thumb.size.width, rect.height / thumb.size.height)
+                let drawSize = CGSize(width: thumb.size.width * scale, height: thumb.size.height * scale)
+                thumb.draw(in: CGRect(
+                    x: rect.midX - drawSize.width / 2,
+                    y: rect.midY - drawSize.height / 2,
+                    width: drawSize.width, height: drawSize.height
+                ))
+                ctx.cgContext.restoreGState()
+            }
+        }
     }
 }
 

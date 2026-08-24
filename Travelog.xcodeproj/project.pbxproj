@@ -29,6 +29,7 @@
 		D2F1DD789A5F81C5293F9DD1 /* countries.geo.json in Resources */ = {isa = PBXBuildFile; fileRef = D0DFAEF0E24BB78E28C00F05 /* countries.geo.json */; };
 		D7E15BA089C07A6224845F76 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7B1A5CD0050DF569CCC6696 /* LibraryView.swift */; };
 		DDD4F52F95D6CEA5348D3AA1 /* TravelogApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8373B6E62D1C6D273C2C06B3 /* TravelogApp.swift */; };
+		F35DFD686B1AD91F8B6CC808 /* QuizView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FA3C81F09B24FB40F9C4636 /* QuizView.swift */; };
 		F9045B04050CD9300D6C71F4 /* DownloadManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E04C341BB15B58B23C9B276F /* DownloadManager.swift */; };
 		FE692D4F029D74431862227B /* MediaCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62459A5F2D7A3C5124E054BC /* MediaCache.swift */; };
 /* End PBXBuildFile section */
@@ -36,6 +37,7 @@
 /* Begin PBXFileReference section */
 		157A85FC24F0AD2C0E8F9F4C /* SlideshowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SlideshowView.swift; sourceTree = "<group>"; };
 		1D3326BBEF11B3B29FE1DEB6 /* SyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncService.swift; sourceTree = "<group>"; };
+		2FA3C81F09B24FB40F9C4636 /* QuizView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizView.swift; sourceTree = "<group>"; };
 		4611880567FC2F8B4E564442 /* LocalLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalLibrary.swift; sourceTree = "<group>"; };
 		47C695DB7BE0044C160E464F /* DriveService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveService.swift; sourceTree = "<group>"; };
 		4C604B71AD0C4A168DE843BA /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
@@ -57,7 +59,7 @@
 		D7A1B811A4F83AB52DB2E350 /* CountryGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountryGridView.swift; sourceTree = "<group>"; };
 		E04C341BB15B58B23C9B276F /* DownloadManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadManager.swift; sourceTree = "<group>"; };
 		FD609349D423ABB732FBC787 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		"TEMP_6AED70A5-8FDC-4721-901A-8E71DFE7F005" /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
+		"TEMP_43AA7510-837C-4628-A2D2-6EEB864A2E01" /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -97,6 +99,7 @@
 				D7A1B811A4F83AB52DB2E350 /* CountryGridView.swift */,
 				A7B1A5CD0050DF569CCC6696 /* LibraryView.swift */,
 				AE341503665DAF0B47A0C774 /* LoginView.swift */,
+				2FA3C81F09B24FB40F9C4636 /* QuizView.swift */,
 				81D6AD18D5B91CF610242549 /* SettingsView.swift */,
 				157A85FC24F0AD2C0E8F9F4C /* SlideshowView.swift */,
 				7CF68ED9AB810DE8B88C0537 /* StatsView.swift */,
@@ -158,10 +161,10 @@
 			path = Models;
 			sourceTree = "<group>";
 		};
-		"TEMP_99C39710-469D-4422-B2A7-0100C10102EF" /* travelog */ = {
+		"TEMP_9E750807-B151-40B3-92E4-364865274026" /* travelog */ = {
 			isa = PBXGroup;
 			children = (
-				"TEMP_6AED70A5-8FDC-4721-901A-8E71DFE7F005" /* Config.xcconfig */,
+				"TEMP_43AA7510-837C-4628-A2D2-6EEB864A2E01" /* Config.xcconfig */,
 			);
 			path = travelog;
 			sourceTree = "<group>";
@@ -257,6 +260,7 @@
 				838972386D8A315A160862B2 /* MockData.swift in Sources */,
 				7815DAA31476EE1FC125B20A /* Models.swift in Sources */,
 				B9BC54A315DB848F601EC56D /* PlaceLookup.swift in Sources */,
+				F35DFD686B1AD91F8B6CC808 /* QuizView.swift in Sources */,
 				AA13211FFE807415665DD313 /* SettingsView.swift in Sources */,
 				B5BA051CAB44B4CAE0EAABCD /* SlideshowView.swift in Sources */,
 				6E3CC1A1F67978294080551B /* StatsView.swift in Sources */,
@@ -272,7 +276,7 @@
 /* Begin XCBuildConfiguration section */
 		4C82268EC18626AFEA87046A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_6AED70A5-8FDC-4721-901A-8E71DFE7F005" /* Config.xcconfig */;
+			baseConfigurationReference = "TEMP_43AA7510-837C-4628-A2D2-6EEB864A2E01" /* Config.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -296,7 +300,7 @@
 		};
 		ADB2DB370A1913EF04317362 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_6AED70A5-8FDC-4721-901A-8E71DFE7F005" /* Config.xcconfig */;
+			baseConfigurationReference = "TEMP_43AA7510-837C-4628-A2D2-6EEB864A2E01" /* Config.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";

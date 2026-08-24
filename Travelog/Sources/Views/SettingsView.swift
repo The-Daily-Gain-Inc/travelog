@@ -17,6 +17,9 @@ struct SettingsView: View {
     @AppStorage("muteVideos") private var muteVideos = false
     @AppStorage("accentTheme") private var accentTheme = "orange"
     @AppStorage("dailyMemoryNotification") private var dailyMemoryNotification = false
+    @AppStorage("videoLimitSeconds") private var videoLimitSeconds: Double = 0
+    @AppStorage("sleepTimerMinutes") private var sleepTimerMinutes: Double = 0
+    @AppStorage("cacheLimitMB") private var cacheLimitMB: Double = 0
     @State private var exportURL: URL?
     @AppStorage("showTripLines") private var showTripLines = true
     @AppStorage("ambientMode") private var ambientMode = false
@@ -110,6 +113,17 @@ struct SettingsView: View {
                     }
                     Toggle("Ken Burns effect", isOn: $kenBurns)
                     Toggle("Mute videos", isOn: $muteVideos)
+                    Picker("Limit videos to", selection: $videoLimitSeconds) {
+                        Text("Full length").tag(0.0)
+                        Text("15 seconds").tag(15.0)
+                        Text("30 seconds").tag(30.0)
+                    }
+                    Picker("Sleep timer", selection: $sleepTimerMinutes) {
+                        Text("Off").tag(0.0)
+                        Text("15 minutes").tag(15.0)
+                        Text("30 minutes").tag(30.0)
+                        Text("1 hour").tag(60.0)
+                    }
                     Toggle("Captions (place & date)", isOn: $showCaptions)
                     Toggle("Shuffle", isOn: $shuffleSlides)
                     Toggle("Skip Live Photo clips", isOn: $skipLivePhotos)
@@ -169,6 +183,19 @@ struct SettingsView: View {
                     LabeledContent("Albums", value: "\(albums.count)")
                     LabeledContent("Media items", value: "\(albums.reduce(0) { $0 + $1.items.count })")
                     LabeledContent("Cache size", value: ByteCountFormatter.string(fromByteCount: cacheSize, countStyle: .file))
+                    Picker("Cache limit", selection: $cacheLimitMB) {
+                        Text("Unlimited").tag(0.0)
+                        Text("500 MB").tag(500.0)
+                        Text("2 GB").tag(2048.0)
+                        Text("10 GB").tag(10240.0)
+                    }
+                    .onChange(of: cacheLimitMB) {
+                        guard cacheLimitMB > 0 else { return }
+                        Task {
+                            await MediaCache.shared.enforceLimit(maxBytes: Int64(cacheLimitMB * 1_048_576))
+                            cacheSize = await MediaCache.shared.sizeOnDisk()
+                        }
+                    }
                     Button("Clear Media Cache", role: .destructive) {
                         Task {
                             await MediaCache.shared.clear()

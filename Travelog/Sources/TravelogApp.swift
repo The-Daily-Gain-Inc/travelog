@@ -69,6 +69,12 @@ struct TravelogApp: App {
                 .environmentObject(sync)
                 .onOpenURL { GIDSignIn.sharedInstance.handle($0) }
                 .task { await auth.restore() }
+                .task {
+                    let limitMB = UserDefaults.standard.double(forKey: "cacheLimitMB")
+                    if limitMB > 0 {
+                        await MediaCache.shared.enforceLimit(maxBytes: Int64(limitMB * 1_048_576))
+                    }
+                }
         }
         .modelContainer(Self.container)
         .onChange(of: scenePhase) { _, phase in
