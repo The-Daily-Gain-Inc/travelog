@@ -154,15 +154,21 @@ struct TouchObserver: UIViewRepresentable {
 struct RootView: View {
     @EnvironmentObject private var auth: AuthService
     @AppStorage("demoMode") private var demoMode = false
+    // Referenced so accent changes re-render the whole tree immediately.
+    @AppStorage("accentTheme") private var accentTheme = "orange"
 
     var body: some View {
-        if auth.isRestoring && !demoMode {
-            ProgressView()
-        } else if auth.isSignedIn || demoMode {
-            MainTabView()
-        } else {
-            LoginView()
+        Group {
+            if auth.isRestoring && !demoMode {
+                ProgressView()
+            } else if auth.isSignedIn || demoMode {
+                MainTabView()
+            } else {
+                LoginView()
+            }
         }
+        .tint(Color.appAccent)
+        .id(accentTheme)
     }
 }
 
@@ -209,6 +215,9 @@ struct MainTabView: View {
             selectedTab = "map"
             TourController.shared.tourRequested = true
         }
+        .onReceive(TourController.shared.$focusAlbumId) { id in
+            if id != nil { selectedTab = "map" }
+        }
     }
 
     // Selectable for UI automation via the -initialTab launch argument.
@@ -219,6 +228,9 @@ struct MainTabView: View {
             AlbumListView()
                 .tabItem { Label("Albums", systemImage: "photo.stack") }
                 .tag("slideshow")
+            LibraryView()
+                .tabItem { Label("Photos", systemImage: "square.grid.3x3.fill") }
+                .tag("photos")
             WorldMapView()
                 .tabItem { Label("World Map", systemImage: "globe.europe.africa.fill") }
                 .tag("map")

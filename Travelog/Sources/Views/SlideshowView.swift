@@ -46,6 +46,9 @@ struct SlideshowView: View {
     @State private var caption: String?
     @State private var showInfo = false
     @State private var infoPlace: String?
+    @State private var slideStart: Date?
+    @State private var zoom: CGFloat = 1
+    @GestureState private var pinch: CGFloat = 1
     @State private var shuffleSeed = UInt64.random(in: 1...UInt64.max)
     @State private var advanceTask: Task<Void, Never>?
     @State private var hideControlsTask: Task<Void, Never>?
@@ -107,9 +110,17 @@ struct SlideshowView: View {
                     .scaledToFit()
                     .scaleEffect(kenBurnsActive ? 1.09 : 1.0, anchor: kenBurnsAnchor)
                     .animation(kenBurnsActive ? .linear(duration: slideDuration + 1) : nil, value: kenBurnsActive)
+                    .scaleEffect(min(max(zoom * pinch, 1), 5))
                     .ignoresSafeArea()
                     .transition(photoTransition)
                     .id(index)
+                    .gesture(
+                        MagnificationGesture()
+                            .updating($pinch) { value, state, _ in state = value }
+                            .onEnded { value in
+                                zoom = min(max(zoom * value, 1), 5)
+                            }
+                    )
             } else if loadError {
                 ContentUnavailableView("Couldn’t load this item", systemImage: "exclamationmark.triangle")
                     .foregroundStyle(.white)
@@ -136,6 +147,24 @@ struct SlideshowView: View {
 
             if showControls {
                 overlayControls
+            }
+
+            // Thin countdown to the next slide while auto-advancing.
+            if isPlaying, player == nil, let slideStart {
+                VStack {
+                    TimelineView(.periodic(from: .now, by: 0.1)) { context in
+                        let fraction = min(context.date.timeIntervalSince(slideStart) / slideDuration, 1)
+                        GeometryReader { geo in
+                            Rectangle()
+                                .fill(Color.appAccent.opacity(0.85))
+                                .frame(width: geo.size.width * fraction, height: 3)
+                        }
+                        .frame(height: 3)
+                    }
+                    Spacer()
+                }
+                .ignoresSafeArea()
+                .allowsHitTesting(false)
             }
         }
         .statusBarHidden(true)
@@ -355,7 +384,7 @@ struct SlideshowView: View {
     private func miniMap(coordinate: CLLocationCoordinate2D) -> some View {
         Map(position: .constant(.camera(MapCamera(centerCoordinate: coordinate, distance: 9_000_000)))) {
             Marker(title, coordinate: coordinate)
-                .tint(.orange)
+                .tint(Color.appAccent)
         }
         .mapStyle(.imagery(elevation: .flat))
         .allowsHitTesting(false)
@@ -413,6 +442,7 @@ struct SlideshowView: View {
 
     private func scheduleAdvance() {
         advanceTask?.cancel()
+        slideStart = .now
         advanceTask = Task {
             try? await Task.sleep(nanoseconds: UInt64(slideDuration * 1_000_000_000))
             guard !Task.isCancelled else { return }
@@ -431,6 +461,8 @@ struct SlideshowView: View {
         caption = nil
         kenBurnsActive = false
         loadError = false
+        slideStart = nil
+        zoom = 1
 
         updateCaption(for: item)
 

@@ -212,6 +212,8 @@ final class TourController: ObservableObject {
     static let shared = TourController()
     @Published var tourRequested = false
     @Published var isTouring = false
+    /// Album to fly to when the map appears ("Show on Map").
+    @Published var focusAlbumId: String?
 }
 
 /// A group of photos taken near the same spot at the current zoom level.
@@ -278,6 +280,8 @@ struct WorldMapView: View {
     @State private var tourQueue: [String] = []
     @State private var tourTask: Task<Void, Never>?
     @State private var showVisitedList = false
+    @State private var mapShareImage: UIImage?
+    @State private var buildingShareImage = false
     @State private var tourCard: (album: Album, feature: CountryFeature)?
     @State private var tourRegionClusters: [PhotoCluster] = []
     @State private var tourCluster: PhotoCluster?
@@ -372,8 +376,8 @@ struct WorldMapView: View {
                         ForEach(regionClusters) { cluster in
                             MapCircle(center: cluster.coordinate,
                                       radius: 60_000 + Double(min(cluster.items.count, 40)) * 2_000)
-                                .foregroundStyle(.orange.opacity(0.3))
-                                .stroke(.orange.opacity(0.85), lineWidth: 1.5)
+                                .foregroundStyle(Color.appAccent.opacity(0.3))
+                                .stroke(Color.appAccent.opacity(0.85), lineWidth: 1.5)
                             Annotation("", coordinate: cluster.coordinate) {
                                 Button { selectedCluster = cluster } label: {
                                     RegionBadge(cluster: cluster)
@@ -383,7 +387,7 @@ struct WorldMapView: View {
                     }
                     if mode == .countries {
                         ForEach(albumFeatures, id: \.feature.id) { entry in
-                            let tint = colorByFeatureId[entry.feature.id] ?? .orange
+                            let tint = colorByFeatureId[entry.feature.id] ?? Color.appAccent
                             ForEach(Array(entry.feature.polygons.enumerated()), id: \.offset) { _, polygon in
                                 MapPolygon(polygon)
                                     .foregroundStyle(tint.opacity(0.4))
@@ -410,7 +414,7 @@ struct WorldMapView: View {
                                     .map { CLLocationCoordinate2D(latitude: $0.latitude!, longitude: $0.longitude!) }
                                 if route.count > 1 {
                                     MapPolyline(coordinates: route)
-                                        .stroke(.orange.opacity(0.8),
+                                        .stroke(Color.appAccent.opacity(0.8),
                                                 style: StrokeStyle(lineWidth: 2.5, lineCap: .round, dash: [6, 5]))
                                 }
                             }
@@ -424,7 +428,7 @@ struct WorldMapView: View {
                                             .font(.system(size: 14, weight: .semibold))
                                             .foregroundStyle(.white)
                                             .padding(8)
-                                            .background(.orange.gradient, in: Circle())
+                                            .background(Color.appAccent.gradient, in: Circle())
                                             .shadow(color: .black.opacity(0.5), radius: 4, y: 2)
                                     } else {
                                         pinLabel(symbol: "photo.on.rectangle.angled", count: cluster.items.count)
@@ -522,6 +526,29 @@ struct WorldMapView: View {
                             .background(.ultraThinMaterial, in: Circle())
                     }
                     .help(Text("Frame all my travels"))
+
+                    if let shareImage = mapShareImage {
+                        ShareLink(
+                            item: Image(uiImage: shareImage),
+                            preview: SharePreview(Text("My Travel Map"), image: Image(uiImage: shareImage))
+                        ) {
+                            Image(systemName: "square.and.arrow.up")
+                                .font(.system(size: 20, weight: .semibold))
+                                .frame(width: 46, height: 46)
+                                .background(.ultraThinMaterial, in: Circle())
+                        }
+                    } else {
+                        Button {
+                            Task { await buildMapShareImage() }
+                        } label: {
+                            Image(systemName: buildingShareImage ? "hourglass" : "square.and.arrow.up")
+                                .font(.system(size: 20, weight: .semibold))
+                                .frame(width: 46, height: 46)
+                                .background(.ultraThinMaterial, in: Circle())
+                        }
+                        .disabled(buildingShareImage)
+                        .help(Text("Share my travel map"))
+                    }
                 }
                 .padding(20)
             }
@@ -551,8 +578,19 @@ struct WorldMapView: View {
                 }
             }
             .onDisappear { stopTour() }
-            .onAppear { consumeTourRequest() }
+            .onAppear { consumeTourRequest(); consumeFocusRequest() }
             .onChange(of: tourController.tourRequested) { consumeTourRequest() }
+            .onChange(of: tourController.focusAlbumId) { consumeFocusRequest() }
+        }
+    }
+
+    private func consumeFocusRequest() {
+        guard let id = tourController.focusAlbumId,
+              let entry = albumFeatures.first(where: { $0.album.driveId == id }),
+              let center = WorldGeometry.centroid(of: entry.feature) else { return }
+        tourController.focusAlbumId = nil
+        withAnimation(.easeInOut(duration: 1.8)) {
+            camera = .camera(MapCamera(centerCoordinate: center, distance: 2_600_000))
         }
     }
 
@@ -577,6 +615,70 @@ struct WorldMapView: View {
         let threshold = max(min(visibleSpan.latitudeDelta, visibleSpan.longitudeDelta) * 0.06, 0.02)
         if distance2(hit) < threshold * threshold {
             selectedCluster = hit
+        }
+    }
+
+    /// Renders a shareable world-map image: satellite base, visited countries
+    /// filled in the accent color, flags at their centers, and a footer line.
+    @MainActor
+    private func buildMapShareImage() async {
+        buildingShareImage = true
+        defer { buildingShareImage = false }
+
+        let options = MKMapSnapshotter.Options()
+        options.mapType = .satellite
+        options.region = MKCoordinateRegion(
+            center: CLLocationCoordinate2D(latitude: 20, longitude: 0),
+            span: MKCoordinateSpan(latitudeDelta: 140, longitudeDelta: 340)
+        )
+        options.size = CGSize(width: 1600, height: 1000)
+        let snapshot: MKMapSnapshotter.Snapshot
+        do {
+            snapshot = try await MKMapSnapshotter(options: options).start()
+        } catch {
+            NSLog("Travelog map snapshot failed: %@", error.localizedDescription)
+            return
+        }
+
+        let accent = UIColor(Color.appAccent)
+        let renderer = UIGraphicsImageRenderer(size: options.size)
+        mapShareImage = renderer.image { ctx in
+            snapshot.image.draw(at: .zero)
+
+            for entry in albumFeatures {
+                for polygon in entry.feature.polygons {
+                    let path = UIBezierPath()
+                    let points = polygon.points()
+                    guard polygon.pointCount > 2 else { continue }
+                    for i in 0..<polygon.pointCount {
+                        let point = snapshot.point(for: points[i].coordinate)
+                        i == 0 ? path.move(to: point) : path.addLine(to: point)
+                    }
+                    path.close()
+                    accent.withAlphaComponent(0.45).setFill()
+                    path.fill()
+                    accent.setStroke()
+                    path.lineWidth = 1.5
+                    path.stroke()
+                }
+                if let center = WorldGeometry.centroid(of: entry.feature),
+                   let flag = WorldGeometry.flag(for: entry.feature) {
+                    let attrs: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 34)]
+                    let str = NSAttributedString(string: flag, attributes: attrs)
+                    var at = snapshot.point(for: center)
+                    at.x -= str.size().width / 2
+                    at.y -= str.size().height / 2
+                    str.draw(at: at)
+                }
+            }
+
+            let title = String(localized: "My Travelog · \(visitedCount) countries")
+            let titleAttrs: [NSAttributedString.Key: Any] = [
+                .font: UIFont.systemFont(ofSize: 44, weight: .bold),
+                .foregroundColor: UIColor.white,
+            ]
+            let str = NSAttributedString(string: title, attributes: titleAttrs)
+            str.draw(at: CGPoint(x: 40, y: options.size.height - str.size().height - 34))
         }
     }
 
@@ -684,7 +786,7 @@ struct WorldMapView: View {
                 Image(systemName: touring ? "stop.circle.fill" : "airplane.circle.fill")
                     .font(.system(size: 22, weight: .semibold))
                     .frame(width: 34, height: 30)
-                    .foregroundStyle(touring ? .red : .orange)
+                    .foregroundStyle(touring ? .red : Color.appAccent)
             }
             .help(touring ? Text("Stop the world tour") : Text("World tour: fly to a random country and play its photos"))
         }
@@ -715,13 +817,13 @@ struct WorldMapView: View {
                 .font(.subheadline.bold())
                 .padding(.horizontal, 12)
                 .padding(.vertical, 5)
-                .background(selectedYear == year ? AnyShapeStyle(.orange) : AnyShapeStyle(.clear), in: Capsule())
+                .background(selectedYear == year ? AnyShapeStyle(Color.appAccent) : AnyShapeStyle(.clear), in: Capsule())
                 .foregroundStyle(selectedYear == year ? .white : .primary)
         }
     }
 
     private func pinLabel(symbol: String, count: Int) -> some View {
-        pinBody(count: count, tint: .orange) {
+        pinBody(count: count, tint: Color.appAccent) {
             Image(systemName: symbol)
                 .font(.system(size: 15, weight: .semibold))
         }
@@ -850,7 +952,7 @@ struct RegionBadge: View {
         .foregroundStyle(.white)
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
-        .background(.orange.gradient, in: RoundedRectangle(cornerRadius: 10))
+        .background(Color.appAccent.gradient, in: RoundedRectangle(cornerRadius: 10))
         .shadow(color: .black.opacity(0.5), radius: 4, y: 2)
         .task {
             name = await PlaceLookup.shared.region(

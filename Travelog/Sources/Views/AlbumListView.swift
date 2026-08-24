@@ -12,6 +12,8 @@ struct AlbumListView: View {
     @State private var surpriseMe = false
     @State private var favoritesShow = false
     @State private var onThisDayShow = false
+    @State private var shuffleAlbum: Album?
+    @State private var recentsShow = false
     @State private var searchText = ""
     @AppStorage("albumSort") private var albumSort = "name"
     @AppStorage("rootFolderName") private var rootFolderName = "Travelog"
@@ -90,6 +92,16 @@ struct AlbumListView: View {
                             .buttonStyle(.plain)
                             .contextMenu {
                                 Button {
+                                    shuffleAlbum = album
+                                } label: {
+                                    Label("Play Shuffled", systemImage: "shuffle")
+                                }
+                                Button {
+                                    TourController.shared.focusAlbumId = album.driveId
+                                } label: {
+                                    Label("Show on Map", systemImage: "globe.europe.africa")
+                                }
+                                Button {
                                     downloads.download(album)
                                 } label: {
                                     Label("Download for Offline", systemImage: "arrow.down.circle")
@@ -116,6 +128,12 @@ struct AlbumListView: View {
                                 Label("Name", systemImage: "textformat").tag("name")
                                 Label("Photo count", systemImage: "number").tag("count")
                                 Label("Most recent", systemImage: "clock").tag("recent")
+                            }
+                            Divider()
+                            Button {
+                                recentsShow = true
+                            } label: {
+                                Label("Play Recent Memories", systemImage: "sparkles.rectangle.stack")
                             }
                         } label: {
                             Label("Sort", systemImage: "arrow.up.arrow.down")
@@ -165,6 +183,18 @@ struct AlbumListView: View {
             }
             .fullScreenCover(isPresented: $onThisDayShow) {
                 SlideshowView(title: String(localized: "On This Day"), items: onThisDay)
+            }
+            .fullScreenCover(item: $shuffleAlbum) { album in
+                SlideshowView(title: album.name, items: album.items, forceShuffle: true)
+            }
+            .fullScreenCover(isPresented: $recentsShow) {
+                SlideshowView(
+                    title: String(localized: "Recent Memories"),
+                    items: Array(albums.flatMap(\.items)
+                        .filter { !$0.isHidden }
+                        .sorted { $0.createdTime > $1.createdTime }
+                        .prefix(30))
+                )
             }
         }
     }

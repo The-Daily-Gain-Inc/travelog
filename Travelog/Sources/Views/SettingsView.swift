@@ -15,6 +15,9 @@ struct SettingsView: View {
     @AppStorage("showHiddenItems") private var showHiddenItems = false
     @AppStorage("transitionStyle") private var transitionStyle = "fade"
     @AppStorage("muteVideos") private var muteVideos = false
+    @AppStorage("accentTheme") private var accentTheme = "orange"
+    @AppStorage("dailyMemoryNotification") private var dailyMemoryNotification = false
+    @State private var exportURL: URL?
     @AppStorage("showTripLines") private var showTripLines = true
     @AppStorage("ambientMode") private var ambientMode = false
     @AppStorage("ambientDelayMinutes") private var ambientDelayMinutes = 5.0
@@ -133,6 +136,35 @@ struct SettingsView: View {
                     Toggle("Trip lines between photos", isOn: $showTripLines)
                 }
 
+                Section("Appearance") {
+                    Picker("Accent color", selection: $accentTheme) {
+                        Text("Orange").tag("orange")
+                        Text("Blue").tag("blue")
+                        Text("Green").tag("green")
+                        Text("Pink").tag("pink")
+                        Text("Teal").tag("teal")
+                    }
+                }
+
+                Section {
+                    Toggle("Daily memories reminder", isOn: $dailyMemoryNotification)
+                        .onChange(of: dailyMemoryNotification) {
+                            if dailyMemoryNotification {
+                                Task {
+                                    if await !MemoriesNotifications.enable() {
+                                        dailyMemoryNotification = false
+                                    }
+                                }
+                            } else {
+                                MemoriesNotifications.disable()
+                            }
+                        }
+                } header: {
+                    Text("Notifications")
+                } footer: {
+                    Text("A gentle nudge at 9 AM to revisit photos taken on this day in past years.")
+                }
+
                 Section("Library") {
                     LabeledContent("Albums", value: "\(albums.count)")
                     LabeledContent("Media items", value: "\(albums.reduce(0) { $0 + $1.items.count })")
@@ -141,6 +173,17 @@ struct SettingsView: View {
                         Task {
                             await MediaCache.shared.clear()
                             cacheSize = await MediaCache.shared.sizeOnDisk()
+                        }
+                    }
+                    if let exportURL {
+                        ShareLink(item: exportURL) {
+                            Label("Share Exported Data", systemImage: "square.and.arrow.up")
+                        }
+                    } else {
+                        Button {
+                            exportLibrary()
+                        } label: {
+                            Label("Export Library Data", systemImage: "doc.badge.arrow.up")
                         }
                     }
                 }
@@ -167,5 +210,33 @@ struct SettingsView: View {
             }
             .task { cacheSize = await MediaCache.shared.sizeOnDisk() }
         }
+    }
+
+    /// Writes albums/items metadata (never the media itself) as JSON.
+    private func exportLibrary() {
+        var albumsJSON: [[String: Any]] = []
+        for album in albums {
+            let items: [[String: Any]] = album.items.map { item in
+                var dict: [String: Any] = [
+                    "name": item.name,
+                    "mimeType": item.mimeType,
+                    "createdTime": item.createdTime.ISO8601Format(),
+                    "sizeBytes": item.sizeBytes,
+                    "favorite": item.isFavorite,
+                    "hidden": item.isHidden,
+                ]
+                if let lat = item.latitude, let lon = item.longitude {
+                    dict["latitude"] = lat
+                    dict["longitude"] = lon
+                }
+                return dict
+            }
+            albumsJSON.append(["country": album.name, "items": items])
+        }
+        let payload: [String: Any] = ["exported": Date.now.ISO8601Format(), "albums": albumsJSON]
+        guard let data = try? JSONSerialization.data(withJSONObject: payload, options: [.prettyPrinted, .sortedKeys]) else { return }
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("Travelog-Export.json")
+        try? data.write(to: url)
+        exportURL = url
     }
 }

@@ -27,6 +27,20 @@ struct StatsView: View {
         albums.max { $0.items.count < $1.items.count }
     }
 
+    /// Kilometers along each trip's chronological route, summed.
+    private var totalDistanceKm: Double {
+        let sorted = allItems.filter { !$0.isHidden }.sorted { $0.createdTime < $1.createdTime }
+        guard !sorted.isEmpty else { return 0 }
+        var groups: [[MediaItem]] = [[]]
+        var last: Date?
+        for item in sorted {
+            if let last, item.createdTime.timeIntervalSince(last) > 14 * 86_400 { groups.append([]) }
+            groups[groups.count - 1].append(item)
+            last = item.createdTime
+        }
+        return groups.reduce(0) { $0 + Trip(id: "d", items: $1).distanceKm }
+    }
+
     private var firstTrip: Date? { allItems.map(\.createdTime).min() }
     private var latestTrip: Date? { allItems.map(\.createdTime).max() }
 
@@ -94,10 +108,10 @@ struct StatsView: View {
                             Text(Double(countriesVisited) / Double(worldCountryCount),
                                  format: .percent.precision(.fractionLength(1)))
                                 .font(.title3.bold())
-                                .foregroundStyle(.orange)
+                                .foregroundStyle(Color.appAccent)
                         }
                         ProgressView(value: Double(countriesVisited), total: Double(worldCountryCount))
-                            .tint(.orange)
+                            .tint(Color.appAccent)
                     }
                     .padding(.vertical, 6)
                 }
@@ -108,6 +122,9 @@ struct StatsView: View {
                     LabeledContent("With location", value: "\(locatedCount)")
                     if let topAlbum {
                         LabeledContent("Most photographed", value: "\(topAlbum.name) (\(topAlbum.items.count))")
+                    }
+                    if totalDistanceKm >= 1 {
+                        LabeledContent("Distance traveled", value: "\(Int(totalDistanceKm.rounded()).formatted()) km")
                     }
                     if let firstTrip, let latestTrip {
                         LabeledContent("First memory", value: firstTrip.formatted(.dateTime.month(.wide).year()))
@@ -139,7 +156,7 @@ struct StatsView: View {
                                     Spacer()
                                     Image(systemName: "play.circle.fill")
                                         .font(.title2)
-                                        .foregroundStyle(.orange)
+                                        .foregroundStyle(Color.appAccent)
                                 }
                             }
                             .buttonStyle(.plain)
@@ -157,7 +174,7 @@ struct StatsView: View {
                                         .foregroundStyle(.secondary)
                                 }
                                 ProgressView(value: Double(entry.visited), total: Double(entry.total))
-                                    .tint(entry.visited > 0 ? .orange : .gray)
+                                    .tint(entry.visited > 0 ? Color.appAccent : .gray)
                             }
                             .padding(.vertical, 2)
                         }
@@ -193,7 +210,7 @@ struct StatsView: View {
                                 x: .value("Year", String(entry.year)),
                                 y: .value("Photos", entry.count)
                             )
-                            .foregroundStyle(.orange.gradient)
+                            .foregroundStyle(Color.appAccent.gradient)
                             .cornerRadius(4)
                         }
                         .frame(height: 220)

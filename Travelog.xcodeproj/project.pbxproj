@@ -13,6 +13,7 @@
 		3FC19FA4F4CF222DA061A731 /* SyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D3326BBEF11B3B29FE1DEB6 /* SyncService.swift */; };
 		40065216053C085AB8C101C6 /* TripsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DA8962B804D9E0A8CE9D7A0 /* TripsView.swift */; };
 		41CDF83A3F6B2C9F6981D28D /* LocalLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4611880567FC2F8B4E564442 /* LocalLibrary.swift */; };
+		56B4C92DD1D7F11DAE5164A7 /* MemoriesNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 510842D96CF4150DA10A7A79 /* MemoriesNotifications.swift */; };
 		6E3CC1A1F67978294080551B /* StatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CF68ED9AB810DE8B88C0537 /* StatsView.swift */; };
 		70A2E709D56C4E529D8A3554 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = ABA3902CDD62FD4EF297F43C /* GoogleSignInSwift */; };
 		7815DAA31476EE1FC125B20A /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7143A318622759509E0DE20 /* Models.swift */; };
@@ -26,6 +27,7 @@
 		B6325038C1CFB2837E62D3C4 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = E8FDD57756CF5C0961FFDD9C /* GoogleSignIn */; };
 		B9BC54A315DB848F601EC56D /* PlaceLookup.swift in Sources */ = {isa = PBXBuildFile; fileRef = AACBF1D7CF736764515B0CE0 /* PlaceLookup.swift */; };
 		D2F1DD789A5F81C5293F9DD1 /* countries.geo.json in Resources */ = {isa = PBXBuildFile; fileRef = D0DFAEF0E24BB78E28C00F05 /* countries.geo.json */; };
+		D7E15BA089C07A6224845F76 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7B1A5CD0050DF569CCC6696 /* LibraryView.swift */; };
 		DDD4F52F95D6CEA5348D3AA1 /* TravelogApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8373B6E62D1C6D273C2C06B3 /* TravelogApp.swift */; };
 		F9045B04050CD9300D6C71F4 /* DownloadManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E04C341BB15B58B23C9B276F /* DownloadManager.swift */; };
 		FE692D4F029D74431862227B /* MediaCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62459A5F2D7A3C5124E054BC /* MediaCache.swift */; };
@@ -37,6 +39,7 @@
 		4611880567FC2F8B4E564442 /* LocalLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalLibrary.swift; sourceTree = "<group>"; };
 		47C695DB7BE0044C160E464F /* DriveService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveService.swift; sourceTree = "<group>"; };
 		4C604B71AD0C4A168DE843BA /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
+		510842D96CF4150DA10A7A79 /* MemoriesNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoriesNotifications.swift; sourceTree = "<group>"; };
 		5458D4926B07CC42E983916A /* Travelog.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Travelog.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		62459A5F2D7A3C5124E054BC /* MediaCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaCache.swift; sourceTree = "<group>"; };
 		6DA8962B804D9E0A8CE9D7A0 /* TripsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripsView.swift; sourceTree = "<group>"; };
@@ -45,6 +48,7 @@
 		81D6AD18D5B91CF610242549 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		8373B6E62D1C6D273C2C06B3 /* TravelogApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TravelogApp.swift; sourceTree = "<group>"; };
 		8A4474FA291C56EAD7E60EB9 /* MockData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockData.swift; sourceTree = "<group>"; };
+		A7B1A5CD0050DF569CCC6696 /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
 		AACBF1D7CF736764515B0CE0 /* PlaceLookup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceLookup.swift; sourceTree = "<group>"; };
 		AE341503665DAF0B47A0C774 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		B1CFA1C925C8073D60920192 /* AlbumListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumListView.swift; sourceTree = "<group>"; };
@@ -53,7 +57,7 @@
 		D7A1B811A4F83AB52DB2E350 /* CountryGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountryGridView.swift; sourceTree = "<group>"; };
 		E04C341BB15B58B23C9B276F /* DownloadManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadManager.swift; sourceTree = "<group>"; };
 		FD609349D423ABB732FBC787 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		"TEMP_F995D66C-6F69-4C58-BADC-C2F5178956E0" /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
+		"TEMP_6AED70A5-8FDC-4721-901A-8E71DFE7F005" /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -91,6 +95,7 @@
 			children = (
 				B1CFA1C925C8073D60920192 /* AlbumListView.swift */,
 				D7A1B811A4F83AB52DB2E350 /* CountryGridView.swift */,
+				A7B1A5CD0050DF569CCC6696 /* LibraryView.swift */,
 				AE341503665DAF0B47A0C774 /* LoginView.swift */,
 				81D6AD18D5B91CF610242549 /* SettingsView.swift */,
 				157A85FC24F0AD2C0E8F9F4C /* SlideshowView.swift */,
@@ -126,6 +131,7 @@
 				47C695DB7BE0044C160E464F /* DriveService.swift */,
 				4611880567FC2F8B4E564442 /* LocalLibrary.swift */,
 				62459A5F2D7A3C5124E054BC /* MediaCache.swift */,
+				510842D96CF4150DA10A7A79 /* MemoriesNotifications.swift */,
 				8A4474FA291C56EAD7E60EB9 /* MockData.swift */,
 				AACBF1D7CF736764515B0CE0 /* PlaceLookup.swift */,
 				1D3326BBEF11B3B29FE1DEB6 /* SyncService.swift */,
@@ -152,10 +158,10 @@
 			path = Models;
 			sourceTree = "<group>";
 		};
-		"TEMP_EDD64673-E624-4C31-9487-3771E68B1C87" /* travelog */ = {
+		"TEMP_99C39710-469D-4422-B2A7-0100C10102EF" /* travelog */ = {
 			isa = PBXGroup;
 			children = (
-				"TEMP_F995D66C-6F69-4C58-BADC-C2F5178956E0" /* Config.xcconfig */,
+				"TEMP_6AED70A5-8FDC-4721-901A-8E71DFE7F005" /* Config.xcconfig */,
 			);
 			path = travelog;
 			sourceTree = "<group>";
@@ -243,9 +249,11 @@
 				8DDE662FACC17D15FF681D7F /* CountryGridView.swift in Sources */,
 				F9045B04050CD9300D6C71F4 /* DownloadManager.swift in Sources */,
 				0AF6F0D668B1C46B0E52FEFB /* DriveService.swift in Sources */,
+				D7E15BA089C07A6224845F76 /* LibraryView.swift in Sources */,
 				41CDF83A3F6B2C9F6981D28D /* LocalLibrary.swift in Sources */,
 				B00ABEAABFB4F76FBB8292F5 /* LoginView.swift in Sources */,
 				FE692D4F029D74431862227B /* MediaCache.swift in Sources */,
+				56B4C92DD1D7F11DAE5164A7 /* MemoriesNotifications.swift in Sources */,
 				838972386D8A315A160862B2 /* MockData.swift in Sources */,
 				7815DAA31476EE1FC125B20A /* Models.swift in Sources */,
 				B9BC54A315DB848F601EC56D /* PlaceLookup.swift in Sources */,
@@ -264,7 +272,7 @@
 /* Begin XCBuildConfiguration section */
 		4C82268EC18626AFEA87046A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_F995D66C-6F69-4C58-BADC-C2F5178956E0" /* Config.xcconfig */;
+			baseConfigurationReference = "TEMP_6AED70A5-8FDC-4721-901A-8E71DFE7F005" /* Config.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -288,7 +296,7 @@
 		};
 		ADB2DB370A1913EF04317362 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_F995D66C-6F69-4C58-BADC-C2F5178956E0" /* Config.xcconfig */;
+			baseConfigurationReference = "TEMP_6AED70A5-8FDC-4721-901A-8E71DFE7F005" /* Config.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";

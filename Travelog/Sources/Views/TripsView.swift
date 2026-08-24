@@ -28,6 +28,19 @@ struct Trip: Identifiable {
         }
         return "\(start.formatted(.dateTime.month(.abbreviated).year())) – \(end.formatted(.dateTime.month(.abbreviated).year()))"
     }
+
+    /// Kilometers along the chronological photo route.
+    var distanceKm: Double {
+        let coords = route
+        guard coords.count > 1 else { return 0 }
+        var total = 0.0
+        for i in 1..<coords.count {
+            let a = CLLocation(latitude: coords[i - 1].latitude, longitude: coords[i - 1].longitude)
+            let b = CLLocation(latitude: coords[i].latitude, longitude: coords[i].longitude)
+            total += a.distance(from: b)
+        }
+        return total / 1000
+    }
 }
 
 /// Trips tab: the library clustered into trips by gaps in shooting dates,
@@ -104,6 +117,11 @@ struct TripCard: View {
                     Label("\(trip.items.count) memories", systemImage: "photo.stack")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
+                    if trip.distanceKm >= 1 {
+                        Label("\(Int(trip.distanceKm.rounded())) km", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
                     Spacer(minLength: 0)
                     HStack(spacing: 6) {
                         ForEach(Array(thumbs.enumerated()), id: \.offset) { _, img in
@@ -150,10 +168,10 @@ struct TripCard: View {
             Map(initialPosition: .region(regionFitting(trip.route))) {
                 if trip.route.count > 1 {
                     MapPolyline(coordinates: trip.route)
-                        .stroke(.orange, style: StrokeStyle(lineWidth: 2.5, lineCap: .round, dash: [5, 4]))
+                        .stroke(Color.appAccent, style: StrokeStyle(lineWidth: 2.5, lineCap: .round, dash: [5, 4]))
                 }
                 if let first = trip.route.first {
-                    Marker(trip.countries.first ?? "", coordinate: first).tint(.orange)
+                    Marker(trip.countries.first ?? "", coordinate: first).tint(Color.appAccent)
                 }
             }
             .mapStyle(.imagery(elevation: .flat))

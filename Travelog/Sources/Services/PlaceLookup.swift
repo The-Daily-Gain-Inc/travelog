@@ -1,5 +1,19 @@
 import Foundation
 import CoreLocation
+import SwiftUI
+
+extension Color {
+    /// User-selected accent, used for controls and map artwork alike.
+    static var appAccent: Color {
+        switch UserDefaults.standard.string(forKey: "accentTheme") {
+        case "blue": .blue
+        case "green": .green
+        case "pink": .pink
+        case "teal": .teal
+        default: .orange
+        }
+    }
+}
 
 /// Reverse-geocodes photo GPS positions into "City, Country" captions,
 /// caching by rounded coordinate to stay well under geocoder rate limits.

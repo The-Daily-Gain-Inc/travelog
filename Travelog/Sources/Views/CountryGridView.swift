@@ -19,9 +19,38 @@ struct CountryGridView: View {
             .sorted { $0.createdTime < $1.createdTime }
     }
 
+    private var headerStats: some View {
+        HStack(spacing: 18) {
+            Text(WorldGeometry.feature(for: album).flatMap { WorldGeometry.flag(for: $0) } ?? "🌍")
+                .font(.system(size: 54))
+            VStack(alignment: .leading, spacing: 4) {
+                let photos = items.filter { !$0.isVideo }.count
+                let videos = items.count - photos
+                Text(videos > 0 ? "\(photos) photos · \(videos) videos" : "\(photos) photos")
+                    .font(.headline)
+                if let first = items.first?.createdTime, let last = items.last?.createdTime {
+                    let a = first.formatted(.dateTime.month(.abbreviated).year())
+                    let b = last.formatted(.dateTime.month(.abbreviated).year())
+                    Text(a == b ? a : "\(a) – \(b)")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                if regionGroups.count > 1 {
+                    Text("\(regionGroups.count) regions")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            Spacer()
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
+                headerStats
                 if regionGroups.count > 1 {
                     LazyVStack(alignment: .leading, spacing: 12, pinnedViews: [.sectionHeaders]) {
                         ForEach(regionGroups, id: \.name) { group in
