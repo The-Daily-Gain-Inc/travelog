@@ -46,6 +46,12 @@ targets:
         UILaunchScreen: {}
         UIRequiresFullScreen: true
         GIDClientID: $(GOOGLE_CLIENT_ID)
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: true
+          UISceneConfigurations:
+            UIWindowSceneSessionRoleExternalDisplayNonInteractive:
+              - UISceneConfigurationName: External
+                UISceneDelegateClassName: Travelog.ExternalSceneDelegate
         UIBackgroundModes:
           - fetch
         BGTaskSchedulerPermittedIdentifiers:

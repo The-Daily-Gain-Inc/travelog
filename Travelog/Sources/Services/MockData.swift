@@ -36,11 +36,18 @@ enum MockData {
             let album = Album(driveId: idPrefix + name.lowercased(), name: name)
             context.insert(album)
             for i in 1...photoCount {
+                // Dates span several years (exercises the year filter, Trips
+                // and the per-year chart); every 5th photo lands near Aug 24
+                // of a past year so "On This Day" has content.
+                let year: TimeInterval = 31_536_000
+                let created: TimeInterval = i % 5 == 0
+                    ? 1_755_993_600 - Double(i % 3 + 1) * year + Double((i % 7) - 3) * 86_400
+                    : 1_600_000_000 + Double(i) * 86_400 + Double(i % 4) * year
                 let item = MediaItem(
                     driveId: "\(idPrefix)\(name.lowercased())-\(i)",
                     name: "\(name) \(i).jpg",
                     mimeType: "image/jpeg",
-                    createdTime: Date(timeIntervalSince1970: 1_600_000_000 + Double(i) * 86_400),
+                    createdTime: Date(timeIntervalSince1970: created),
                     sizeBytes: 0
                 )
                 // Deterministic photo spots: a few clusters per country so pin

@@ -145,6 +145,41 @@ enum WorldGeometry {
         "YEM": "YE", "ZAF": "ZA", "ZMB": "ZM", "ZWE": "ZW",
     ]
 
+    /// Continent per ISO3 code (covering the bundled dataset).
+    private static let continentByIso3: [String: String] = {
+        var map: [String: String] = [:]
+        let groups: [(String, [String])] = [
+            ("Africa", ["AGO", "BDI", "BEN", "BFA", "BWA", "CAF", "CIV", "CMR", "COD", "COG",
+                        "DJI", "DZA", "EGY", "ERI", "ESH", "ETH", "GAB", "GHA", "GIN", "GMB",
+                        "GNB", "GNQ", "KEN", "LBR", "LBY", "LSO", "MAR", "MDG", "MLI", "MOZ",
+                        "MRT", "MWI", "NAM", "NER", "NGA", "RWA", "SDN", "SEN", "SLE", "SOM",
+                        "SSD", "SWZ", "TCD", "TGO", "TUN", "TZA", "UGA", "ZAF", "ZMB", "ZWE"]),
+            ("Asia", ["AFG", "ARE", "ARM", "AZE", "BGD", "BRN", "BTN", "CHN", "CYP", "GEO",
+                      "IDN", "IND", "IRN", "IRQ", "ISR", "JOR", "JPN", "KAZ", "KGZ", "KHM",
+                      "KOR", "KWT", "LAO", "LBN", "LKA", "MMR", "MNG", "MYS", "NPL", "OMN",
+                      "PAK", "PHL", "PRK", "PSE", "QAT", "SAU", "SYR", "THA", "TJK", "TKM",
+                      "TLS", "TUR", "TWN", "UZB", "VNM", "YEM"]),
+            ("Europe", ["ALB", "AUT", "BEL", "BGR", "BIH", "BLR", "CHE", "CS-KM", "CZE", "DEU",
+                        "DNK", "ESP", "EST", "FIN", "FRA", "GBR", "GRC", "HRV", "HUN", "IRL",
+                        "ISL", "ITA", "LTU", "LUX", "LVA", "MDA", "MKD", "MLT", "MNE", "NLD",
+                        "NOR", "POL", "PRT", "ROU", "RUS", "SRB", "SVK", "SVN", "SWE", "UKR"]),
+            ("North America", ["BHS", "BLZ", "BMU", "CAN", "CRI", "CUB", "DOM", "GRL", "GTM",
+                               "HND", "HTI", "JAM", "MEX", "NIC", "PAN", "PRI", "SLV", "TTO", "USA"]),
+            ("South America", ["ARG", "BOL", "BRA", "CHL", "COL", "ECU", "FLK", "GUF", "GUY",
+                               "PER", "PRY", "SUR", "URY", "VEN"]),
+            ("Oceania", ["AUS", "FJI", "NCL", "NZL", "PNG", "SLB", "VUT"]),
+            ("Antarctica", ["ATA", "ATF"]),
+        ]
+        for (continent, codes) in groups {
+            for code in codes { map[code] = continent }
+        }
+        return map
+    }()
+
+    static func continent(of feature: CountryFeature) -> String? {
+        continentByIso3[feature.id]
+    }
+
     static func flag(for feature: CountryFeature) -> String? {
         iso3to2[feature.id].flatMap { flag(iso2: $0) }
     }
@@ -243,11 +278,32 @@ struct WorldMapView: View {
     @State private var tourQueue: [String] = []
     @State private var tourTask: Task<Void, Never>?
     @State private var showVisitedList = false
+    @State private var tourCard: (album: Album, feature: CountryFeature)?
+    @State private var tourRegionClusters: [PhotoCluster] = []
+    @State private var tourCluster: PhotoCluster?
     @ObservedObject private var tourController = TourController.shared
+
+    // Year filter ("All" + each year present in the library).
+    @State private var selectedYear: Int?
+
+    private func inYear(_ item: MediaItem) -> Bool {
+        guard let selectedYear else { return true }
+        return Calendar.current.component(.year, from: item.createdTime) == selectedYear
+    }
+
+    private var availableYears: [Int] {
+        let calendar = Calendar.current
+        return Set(albums.flatMap(\.items).map { calendar.component(.year, from: $0.createdTime) })
+            .sorted(by: >)
+    }
+
+    private var yearAlbums: [Album] {
+        selectedYear == nil ? albums : albums.filter { $0.items.contains(where: inYear) }
+    }
 
     /// Resolved country per album (name match, alias, or GPS fallback).
     private var albumFeatures: [(album: Album, feature: CountryFeature)] {
-        albums.compactMap { album in
+        yearAlbums.compactMap { album in
             WorldGeometry.feature(for: album).map { (album, $0) }
         }
     }
@@ -270,7 +326,9 @@ struct WorldMapView: View {
     }
 
     private var locatedItems: [MediaItem] {
-        albums.flatMap(\.items).filter { $0.latitude != nil && $0.longitude != nil }
+        albums.flatMap(\.items).filter {
+            $0.latitude != nil && $0.longitude != nil && !$0.isHidden && inYear($0)
+        }
     }
 
     /// Grid-clusters located photos; the cell size follows the visible span so
@@ -336,7 +394,7 @@ struct WorldMapView: View {
                                     Button { selectedAlbum = entry.album } label: {
                                         pinLabel(
                                             flag: WorldGeometry.flag(for: entry.feature),
-                                            count: entry.album.items.count,
+                                            count: entry.album.items.filter { inYear($0) && !$0.isHidden }.count,
                                             tint: tint
                                         )
                                     }
@@ -345,9 +403,9 @@ struct WorldMapView: View {
                         }
                     } else if mode == .photos {
                         if showTripLines {
-                            ForEach(albums) { album in
+                            ForEach(yearAlbums) { album in
                                 let route = album.items
-                                    .filter { $0.latitude != nil && $0.longitude != nil }
+                                    .filter { $0.latitude != nil && $0.longitude != nil && !$0.isHidden && inYear($0) }
                                     .sorted { $0.createdTime < $1.createdTime }
                                     .map { CLLocationCoordinate2D(latitude: $0.latitude!, longitude: $0.longitude!) }
                                 if route.count > 1 {
@@ -401,28 +459,20 @@ struct WorldMapView: View {
             }
             .ignoresSafeArea(edges: .bottom)
             .overlay(alignment: .top) {
-                HStack(spacing: 10) {
-                    Picker("Map filter", selection: $mode) {
-                        ForEach(MapMode.allCases) { m in
-                            Text(m.label).tag(m)
-                        }
+                VStack(spacing: 8) {
+                    topControls
+                    if availableYears.count > 1 {
+                        yearChips
                     }
-                    .pickerStyle(.segmented)
-                    .frame(width: 340)
-
-                    Button {
-                        touring ? stopTour() : startTour()
-                    } label: {
-                        Image(systemName: touring ? "stop.circle.fill" : "airplane.circle.fill")
-                            .font(.system(size: 22, weight: .semibold))
-                            .frame(width: 34, height: 30)
-                            .foregroundStyle(touring ? .red : .orange)
-                    }
-                    .help(touring ? Text("Stop the world tour") : Text("World tour: fly to a random country and play its photos"))
                 }
-                .padding(6)
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
                 .padding(.top, 8)
+            }
+            .overlay(alignment: .center) {
+                if let card = tourCard {
+                    TourNarrationCard(album: card.album, feature: card.feature)
+                        .transition(.opacity.combined(with: .scale(scale: 0.9)))
+                        .allowsHitTesting(false)
+                }
             }
             .overlay(alignment: .bottomLeading) {
                 Group {
@@ -487,6 +537,13 @@ struct WorldMapView: View {
             .fullScreenCover(item: $tourAlbum, onDismiss: nextTourLeg) { album in
                 SlideshowView(album: album, closeAtEnd: true)
             }
+            .fullScreenCover(item: $tourCluster, onDismiss: nextTourLeg) { cluster in
+                SlideshowView(
+                    title: cluster.items.first?.album?.name ?? String(localized: "This area"),
+                    items: cluster.items,
+                    closeAtEnd: true
+                )
+            }
             .sheet(isPresented: $showVisitedList) {
                 VisitedCountriesSheet(entries: albumFeatures) { album in
                     showVisitedList = false
@@ -530,6 +587,9 @@ struct WorldMapView: View {
         touring = true
         tourController.isTouring = true
         tourQueue = []
+        // In Regions mode the tour hops areas instead of countries; snapshot
+        // the clusters so camera movement doesn't reshuffle them mid-tour.
+        tourRegionClusters = mode == .regions ? regionClusters : []
         tourTask = Task { await tourLeg(delay: 0.3) }
     }
 
@@ -537,6 +597,7 @@ struct WorldMapView: View {
         touring = false
         tourController.isTouring = false
         tourTask?.cancel()
+        withAnimation { tourCard = nil }
         withAnimation(.easeInOut(duration: 1.5)) { camera = .rect(.world) }
     }
 
@@ -552,8 +613,12 @@ struct WorldMapView: View {
     private func tourLeg(delay: TimeInterval) async {
         try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
         guard touring, !Task.isCancelled else { return }
-        // Traverse a shuffled queue so every country plays once before any
+        // Traverse a shuffled queue so every stop plays once before any
         // repeats; reshuffle avoiding back-to-back duplicates at the seam.
+        if !tourRegionClusters.isEmpty {
+            await regionTourLeg()
+            return
+        }
         if tourQueue.isEmpty {
             var fresh = albumFeatures.map(\.album.driveId).shuffled()
             if fresh.count > 1, fresh.first == lastTourAlbumId {
@@ -569,12 +634,90 @@ struct WorldMapView: View {
             return
         }
         lastTourAlbumId = entry.album.driveId
+        withAnimation { tourCard = entry }
         withAnimation(.easeInOut(duration: 2.5)) {
             camera = .camera(MapCamera(centerCoordinate: center, distance: 2_600_000))
         }
         try? await Task.sleep(nanoseconds: 3_300_000_000)
         guard touring, !Task.isCancelled else { return }
+        withAnimation { tourCard = nil }
         tourAlbum = entry.album
+    }
+
+    @MainActor
+    private func regionTourLeg() async {
+        if tourQueue.isEmpty {
+            var fresh = tourRegionClusters.map(\.id).shuffled()
+            if fresh.count > 1, fresh.first == lastTourAlbumId {
+                fresh.swapAt(0, fresh.count - 1)
+            }
+            tourQueue = fresh
+        }
+        guard !tourQueue.isEmpty else { stopTour(); return }
+        let nextId = tourQueue.removeFirst()
+        guard let cluster = tourRegionClusters.first(where: { $0.id == nextId }) else {
+            stopTour()
+            return
+        }
+        lastTourAlbumId = cluster.id
+        withAnimation(.easeInOut(duration: 2.5)) {
+            camera = .camera(MapCamera(centerCoordinate: cluster.coordinate, distance: 900_000))
+        }
+        try? await Task.sleep(nanoseconds: 3_300_000_000)
+        guard touring, !Task.isCancelled else { return }
+        tourCluster = cluster
+    }
+
+    private var topControls: some View {
+        HStack(spacing: 10) {
+            Picker("Map filter", selection: $mode) {
+                ForEach(MapMode.allCases) { m in
+                    Text(m.label).tag(m)
+                }
+            }
+            .pickerStyle(.segmented)
+            .frame(width: 340)
+
+            Button {
+                touring ? stopTour() : startTour()
+            } label: {
+                Image(systemName: touring ? "stop.circle.fill" : "airplane.circle.fill")
+                    .font(.system(size: 22, weight: .semibold))
+                    .frame(width: 34, height: 30)
+                    .foregroundStyle(touring ? .red : .orange)
+            }
+            .help(touring ? Text("Stop the world tour") : Text("World tour: fly to a random country and play its photos"))
+        }
+        .padding(6)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
+    }
+
+    private var yearChips: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                yearChip(label: String(localized: "All years"), year: nil)
+                ForEach(availableYears, id: \.self) { year in
+                    yearChip(label: String(year), year: year)
+                }
+            }
+            .padding(.horizontal, 12)
+        }
+        .frame(maxWidth: 480)
+        .padding(.vertical, 5)
+        .background(.ultraThinMaterial, in: Capsule())
+    }
+
+    private func yearChip(label: String, year: Int?) -> some View {
+        Button {
+            withAnimation { selectedYear = year }
+        } label: {
+            Text(label)
+                .font(.subheadline.bold())
+                .padding(.horizontal, 12)
+                .padding(.vertical, 5)
+                .background(selectedYear == year ? AnyShapeStyle(.orange) : AnyShapeStyle(.clear), in: Capsule())
+                .foregroundStyle(selectedYear == year ? .white : .primary)
+        }
     }
 
     private func pinLabel(symbol: String, count: Int) -> some View {
@@ -606,6 +749,41 @@ struct WorldMapView: View {
         .padding(.vertical, 6)
         .background(tint.gradient, in: RoundedRectangle(cornerRadius: 10))
         .shadow(color: .black.opacity(0.5), radius: 4, y: 2)
+    }
+}
+
+/// Overlay shown while the World Tour flies toward a country.
+struct TourNarrationCard: View {
+    let album: Album
+    let feature: CountryFeature
+
+    private var dateRange: String? {
+        let dates = album.items.map(\.createdTime)
+        guard let first = dates.min(), let last = dates.max() else { return nil }
+        let a = first.formatted(.dateTime.month(.abbreviated).year())
+        let b = last.formatted(.dateTime.month(.abbreviated).year())
+        return a == b ? a : "\(a) – \(b)"
+    }
+
+    var body: some View {
+        VStack(spacing: 6) {
+            Text(WorldGeometry.flag(for: feature) ?? "🌍")
+                .font(.system(size: 64))
+            Text(album.name)
+                .font(.title.bold())
+            if let dateRange {
+                Text(dateRange)
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
+            }
+            Text("\(album.items.count) memories")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .padding(.horizontal, 40)
+        .padding(.vertical, 28)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 28))
+        .shadow(radius: 20)
     }
 }
 

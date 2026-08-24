@@ -4,8 +4,44 @@ import GoogleSignIn
 import AVFAudio
 import BackgroundTasks
 
+/// Routes newly connecting scenes: external displays (AirPlay screens,
+/// HDMI) get a non-interactive shuffled slideshow of the whole library.
+final class AppDelegate: NSObject, UIApplicationDelegate {
+    func application(_ application: UIApplication,
+                     configurationForConnecting connectingSceneSession: UISceneSession,
+                     options: UIScene.ConnectionOptions) -> UISceneConfiguration {
+        let config = UISceneConfiguration(name: nil, sessionRole: connectingSceneSession.role)
+        if connectingSceneSession.role == .windowExternalDisplayNonInteractive {
+            config.delegateClass = ExternalSceneDelegate.self
+        }
+        return config
+    }
+}
+
+final class ExternalSceneDelegate: NSObject, UIWindowSceneDelegate {
+    var window: UIWindow?
+
+    func scene(_ scene: UIScene, willConnectTo session: UISceneSession,
+               options: UIScene.ConnectionOptions) {
+        guard let windowScene = scene as? UIWindowScene else { return }
+        let items = ((try? TravelogApp.container.mainContext.fetch(FetchDescriptor<MediaItem>())) ?? [])
+            .filter { !$0.isHidden }
+        let root = SlideshowView(
+            title: String(localized: "Memories"),
+            items: items,
+            forceShuffle: true
+        )
+        .modelContainer(TravelogApp.container)
+        let window = UIWindow(windowScene: windowScene)
+        window.rootViewController = UIHostingController(rootView: root)
+        self.window = window
+        window.makeKeyAndVisible()
+    }
+}
+
 @main
 struct TravelogApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var auth = AuthService.shared
     @StateObject private var sync = SyncService()
     @Environment(\.scenePhase) private var scenePhase
@@ -186,6 +222,9 @@ struct MainTabView: View {
             WorldMapView()
                 .tabItem { Label("World Map", systemImage: "globe.europe.africa.fill") }
                 .tag("map")
+            TripsView()
+                .tabItem { Label("Trips", systemImage: "airplane") }
+                .tag("trips")
             StatsView()
                 .tabItem { Label("Stats", systemImage: "chart.bar.fill") }
                 .tag("stats")

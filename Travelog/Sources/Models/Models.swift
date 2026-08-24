@@ -27,6 +27,8 @@ final class MediaItem {
     // EXIF GPS position from Drive's image metadata, when the photo has one.
     var latitude: Double?
     var longitude: Double?
+    var isFavorite: Bool = false
+    var isHidden: Bool = false
     var album: Album?
 
     var isVideo: Bool { mimeType.hasPrefix("video/") }

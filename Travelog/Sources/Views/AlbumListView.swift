@@ -8,8 +8,27 @@ struct AlbumListView: View {
     @ObservedObject private var downloads = DownloadManager.shared
     @State private var slideshowAlbum: Album?
     @State private var surpriseMe = false
+    @State private var favoritesShow = false
+    @State private var onThisDayShow = false
 
     private let columns = [GridItem(.adaptive(minimum: 280, maximum: 400), spacing: 20)]
+
+    private var favorites: [MediaItem] {
+        albums.flatMap(\.items).filter { $0.isFavorite && !$0.isHidden }
+    }
+
+    /// Photos taken within ±3 days of today's date in earlier years.
+    private var onThisDay: [MediaItem] {
+        let calendar = Calendar.current
+        let today = calendar.ordinality(of: .day, in: .year, for: .now) ?? 0
+        let thisYear = calendar.component(.year, from: .now)
+        return albums.flatMap(\.items).filter { item in
+            guard !item.isHidden,
+                  calendar.component(.year, from: item.createdTime) < thisYear,
+                  let day = calendar.ordinality(of: .day, in: .year, for: item.createdTime) else { return false }
+            return abs(day - today) <= 3
+        }.sorted { $0.createdTime < $1.createdTime }
+    }
 
     var body: some View {
         NavigationStack {
@@ -22,6 +41,23 @@ struct AlbumListView: View {
                     )
                     .padding(.top, 120)
                 } else {
+                    if !onThisDay.isEmpty {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Label("On This Day", systemImage: "calendar.badge.clock")
+                                .font(.title3.bold())
+                                .padding(.horizontal, 20)
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 10) {
+                                    ForEach(onThisDay) { item in
+                                        OnThisDayCard(item: item)
+                                    }
+                                }
+                                .padding(.horizontal, 20)
+                            }
+                        }
+                        .padding(.top, 12)
+                        .onTapGesture { onThisDayShow = true }
+                    }
                     LazyVGrid(columns: columns, spacing: 20) {
                         ForEach(albums) { album in
                             Button { slideshowAlbum = album } label: {
@@ -51,6 +87,16 @@ struct AlbumListView: View {
                             Label("Surprise Me", systemImage: "shuffle")
                         }
                     }
+                    if !favorites.isEmpty {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button {
+                                favoritesShow = true
+                            } label: {
+                                Label("Favorites", systemImage: "heart.fill")
+                            }
+                            .tint(.red)
+                        }
+                    }
                 }
                 if sync.isSyncing {
                     ToolbarItem(placement: .topBarTrailing) {
@@ -73,6 +119,40 @@ struct AlbumListView: View {
                     forceShuffle: true
                 )
             }
+            .fullScreenCover(isPresented: $favoritesShow) {
+                SlideshowView(title: String(localized: "Favorites"), items: favorites)
+            }
+            .fullScreenCover(isPresented: $onThisDayShow) {
+                SlideshowView(title: String(localized: "On This Day"), items: onThisDay)
+            }
+        }
+    }
+}
+
+struct OnThisDayCard: View {
+    let item: MediaItem
+    @State private var image: UIImage?
+
+    var body: some View {
+        ZStack(alignment: .bottomLeading) {
+            Rectangle().fill(.quaternary)
+            if let image {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+            }
+            Text(item.createdTime.formatted(.dateTime.year()))
+                .font(.caption2.bold())
+                .foregroundStyle(.white)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(.black.opacity(0.5), in: Capsule())
+                .padding(6)
+        }
+        .frame(width: 150, height: 110)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .task {
+            image = try? await MediaCache.shared.thumbnail(for: (item.driveId, item.name))
         }
     }
 }

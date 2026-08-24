@@ -11,6 +11,7 @@
 		205258C07696700A48A65BAF /* AlbumListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1CFA1C925C8073D60920192 /* AlbumListView.swift */; };
 		26473257DDDF62AAED7406B5 /* WorldMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 819F96FA1681D75C64444004 /* WorldMapView.swift */; };
 		3FC19FA4F4CF222DA061A731 /* SyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D3326BBEF11B3B29FE1DEB6 /* SyncService.swift */; };
+		40065216053C085AB8C101C6 /* TripsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DA8962B804D9E0A8CE9D7A0 /* TripsView.swift */; };
 		41CDF83A3F6B2C9F6981D28D /* LocalLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4611880567FC2F8B4E564442 /* LocalLibrary.swift */; };
 		6E3CC1A1F67978294080551B /* StatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CF68ED9AB810DE8B88C0537 /* StatsView.swift */; };
 		70A2E709D56C4E529D8A3554 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = ABA3902CDD62FD4EF297F43C /* GoogleSignInSwift */; };
@@ -38,6 +39,7 @@
 		4C604B71AD0C4A168DE843BA /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		5458D4926B07CC42E983916A /* Travelog.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Travelog.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		62459A5F2D7A3C5124E054BC /* MediaCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaCache.swift; sourceTree = "<group>"; };
+		6DA8962B804D9E0A8CE9D7A0 /* TripsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripsView.swift; sourceTree = "<group>"; };
 		7CF68ED9AB810DE8B88C0537 /* StatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsView.swift; sourceTree = "<group>"; };
 		819F96FA1681D75C64444004 /* WorldMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorldMapView.swift; sourceTree = "<group>"; };
 		81D6AD18D5B91CF610242549 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -51,7 +53,7 @@
 		D7A1B811A4F83AB52DB2E350 /* CountryGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountryGridView.swift; sourceTree = "<group>"; };
 		E04C341BB15B58B23C9B276F /* DownloadManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadManager.swift; sourceTree = "<group>"; };
 		FD609349D423ABB732FBC787 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		"TEMP_8558A849-9D4B-4294-A246-4B7C3E0B0F40" /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
+		"TEMP_F995D66C-6F69-4C58-BADC-C2F5178956E0" /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -93,6 +95,7 @@
 				81D6AD18D5B91CF610242549 /* SettingsView.swift */,
 				157A85FC24F0AD2C0E8F9F4C /* SlideshowView.swift */,
 				7CF68ED9AB810DE8B88C0537 /* StatsView.swift */,
+				6DA8962B804D9E0A8CE9D7A0 /* TripsView.swift */,
 				819F96FA1681D75C64444004 /* WorldMapView.swift */,
 			);
 			path = Views;
@@ -149,10 +152,10 @@
 			path = Models;
 			sourceTree = "<group>";
 		};
-		"TEMP_4CCAF381-BBEF-4589-9C76-ECDB4901A2F4" /* travelog */ = {
+		"TEMP_EDD64673-E624-4C31-9487-3771E68B1C87" /* travelog */ = {
 			isa = PBXGroup;
 			children = (
-				"TEMP_8558A849-9D4B-4294-A246-4B7C3E0B0F40" /* Config.xcconfig */,
+				"TEMP_F995D66C-6F69-4C58-BADC-C2F5178956E0" /* Config.xcconfig */,
 			);
 			path = travelog;
 			sourceTree = "<group>";
@@ -251,6 +254,7 @@
 				6E3CC1A1F67978294080551B /* StatsView.swift in Sources */,
 				3FC19FA4F4CF222DA061A731 /* SyncService.swift in Sources */,
 				DDD4F52F95D6CEA5348D3AA1 /* TravelogApp.swift in Sources */,
+				40065216053C085AB8C101C6 /* TripsView.swift in Sources */,
 				26473257DDDF62AAED7406B5 /* WorldMapView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -260,7 +264,7 @@
 /* Begin XCBuildConfiguration section */
 		4C82268EC18626AFEA87046A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_8558A849-9D4B-4294-A246-4B7C3E0B0F40" /* Config.xcconfig */;
+			baseConfigurationReference = "TEMP_F995D66C-6F69-4C58-BADC-C2F5178956E0" /* Config.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -284,7 +288,7 @@
 		};
 		ADB2DB370A1913EF04317362 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_8558A849-9D4B-4294-A246-4B7C3E0B0F40" /* Config.xcconfig */;
+			baseConfigurationReference = "TEMP_F995D66C-6F69-4C58-BADC-C2F5178956E0" /* Config.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";

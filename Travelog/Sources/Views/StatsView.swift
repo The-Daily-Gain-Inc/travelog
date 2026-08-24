@@ -30,6 +30,48 @@ struct StatsView: View {
 
     private let worldCountryCount = 195
 
+    private var visitedFeatures: [CountryFeature] {
+        var seen = Set<String>()
+        return albums.compactMap { WorldGeometry.feature(for: $0) }
+            .filter { seen.insert($0.id).inserted }
+    }
+
+    /// (continent, visited, total-in-dataset) sorted by visited desc.
+    private var continentBreakdown: [(name: String, visited: Int, total: Int)] {
+        var totals: [String: Int] = [:]
+        for country in WorldGeometry.countries {
+            if let c = WorldGeometry.continent(of: country), c != "Antarctica" {
+                totals[c, default: 0] += 1
+            }
+        }
+        var visited: [String: Int] = [:]
+        for feature in visitedFeatures {
+            if let c = WorldGeometry.continent(of: feature) { visited[c, default: 0] += 1 }
+        }
+        return totals.map { (name: $0.key, visited: visited[$0.key] ?? 0, total: $0.value) }
+            .sorted { ($0.visited, $0.name) > ($1.visited, $1.name) }
+    }
+
+    /// Unvisited countries nearest to somewhere already visited.
+    private var suggestions: [CountryFeature] {
+        let visitedIds = Set(visitedFeatures.map(\.id))
+        let visitedCenters = visitedFeatures.compactMap { WorldGeometry.centroid(of: $0) }
+        guard !visitedCenters.isEmpty else { return [] }
+        func nearest(_ feature: CountryFeature) -> Double {
+            guard let c = WorldGeometry.centroid(of: feature) else { return .infinity }
+            return visitedCenters.map {
+                let dLat = $0.latitude - c.latitude
+                let dLon = ($0.longitude - c.longitude) * cos(c.latitude * .pi / 180)
+                return dLat * dLat + dLon * dLon
+            }.min() ?? .infinity
+        }
+        return WorldGeometry.countries
+            .filter { !visitedIds.contains($0.id) && WorldGeometry.continent(of: $0) != "Antarctica" }
+            .sorted { nearest($0) < nearest($1) }
+            .prefix(6)
+            .map { $0 }
+    }
+
     var body: some View {
         NavigationStack {
             Form {
@@ -62,6 +104,47 @@ struct StatsView: View {
                     if let firstTrip, let latestTrip {
                         LabeledContent("First memory", value: firstTrip.formatted(.dateTime.month(.wide).year()))
                         LabeledContent("Latest memory", value: latestTrip.formatted(.dateTime.month(.wide).year()))
+                    }
+                }
+
+                if !visitedFeatures.isEmpty {
+                    Section("Continents") {
+                        ForEach(continentBreakdown, id: \.name) { entry in
+                            VStack(alignment: .leading, spacing: 6) {
+                                HStack {
+                                    Text(entry.name).font(.subheadline.weight(.semibold))
+                                    Spacer()
+                                    Text("\(entry.visited)/\(entry.total)")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                }
+                                ProgressView(value: Double(entry.visited), total: Double(entry.total))
+                                    .tint(entry.visited > 0 ? .orange : .gray)
+                            }
+                            .padding(.vertical, 2)
+                        }
+                    }
+
+                    if !suggestions.isEmpty {
+                        Section("Where next?") {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 10) {
+                                    ForEach(suggestions) { feature in
+                                        VStack(spacing: 4) {
+                                            Text(WorldGeometry.flag(for: feature) ?? "🏳️")
+                                                .font(.system(size: 38))
+                                            Text(feature.name)
+                                                .font(.caption.bold())
+                                                .lineLimit(1)
+                                        }
+                                        .frame(width: 110)
+                                        .padding(.vertical, 12)
+                                        .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 14))
+                                    }
+                                }
+                            }
+                            .padding(.vertical, 4)
+                        }
                     }
                 }
 

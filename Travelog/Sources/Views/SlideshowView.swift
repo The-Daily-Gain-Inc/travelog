@@ -54,7 +54,7 @@ struct SlideshowView: View {
     @AppStorage("displayMaxPixel") private var displayMaxPixel: Double = 0
 
     private var items: [MediaItem] {
-        var all = baseItems.sorted { $0.createdTime < $1.createdTime }
+        var all = baseItems.filter { !$0.isHidden }.sorted { $0.createdTime < $1.createdTime }
         if skipLivePhotos {
             // A Live Photo exports as a still + a tiny video sharing the same
             // basename; drop those companions so only real videos play.
@@ -216,9 +216,24 @@ struct SlideshowView: View {
                     controlButton("forward.end.fill", size: 26) { advance(by: 1) }
                 }
                 Spacer()
-                controlButton(showsMiniMap ? "map.fill" : "map", size: 22) {
-                    withAnimation { showsMiniMap.toggle() }
-                    scheduleControlsAutoHide()
+                HStack(spacing: 20) {
+                    Button {
+                        currentItem?.isFavorite.toggle()
+                        scheduleControlsAutoHide()
+                    } label: {
+                        Image(systemName: currentItem?.isFavorite == true ? "heart.fill" : "heart")
+                            .font(.system(size: 22))
+                            .foregroundStyle(currentItem?.isFavorite == true ? .red : .white.opacity(0.9))
+                    }
+                    controlButton("eye.slash", size: 20) {
+                        currentItem?.isHidden = true
+                        // The list re-filters, so the same index is now the next item.
+                        advance(to: index)
+                    }
+                    controlButton(showsMiniMap ? "map.fill" : "map", size: 22) {
+                        withAnimation { showsMiniMap.toggle() }
+                        scheduleControlsAutoHide()
+                    }
                 }
             }
         }

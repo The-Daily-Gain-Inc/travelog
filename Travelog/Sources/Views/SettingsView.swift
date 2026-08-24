@@ -12,6 +12,7 @@ struct SettingsView: View {
     @AppStorage("showCaptions") private var showCaptions = true
     @AppStorage("shuffleSlides") private var shuffleSlides = false
     @AppStorage("skipLivePhotos") private var skipLivePhotos = true
+    @AppStorage("showHiddenItems") private var showHiddenItems = false
     @AppStorage("showTripLines") private var showTripLines = true
     @AppStorage("ambientMode") private var ambientMode = false
     @AppStorage("ambientDelayMinutes") private var ambientDelayMinutes = 5.0
@@ -101,6 +102,7 @@ struct SettingsView: View {
                     Toggle("Captions (place & date)", isOn: $showCaptions)
                     Toggle("Shuffle", isOn: $shuffleSlides)
                     Toggle("Skip Live Photo clips", isOn: $skipLivePhotos)
+                    Toggle("Show hidden items in grids", isOn: $showHiddenItems)
                 }
 
                 Section {
