@@ -10,6 +10,8 @@ final class AuthService: ObservableObject {
     @Published var isRestoring = true
 
     static let driveScope = "https://www.googleapis.com/auth/drive.readonly"
+    /// Pre-selects the Travelog sync account on Google's sign-in sheet.
+    static let accountHint = "travelog.jrs@gmail.com"
 
     var isSignedIn: Bool { user != nil }
 
@@ -25,7 +27,7 @@ final class AuthService: ObservableObject {
             .first else { return }
         let result = try await GIDSignIn.sharedInstance.signIn(
             withPresenting: root,
-            hint: nil,
+            hint: Self.accountHint,
             additionalScopes: [Self.driveScope]
         )
         user = result.user
