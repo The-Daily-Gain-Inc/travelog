@@ -99,10 +99,12 @@ struct MainTabView: View {
                 await sync.sync(rootFolderName: rootFolderName, context: modelContext)
                 return
             }
-            // Demo mode seeds itself if the sample albums aren't there yet.
+            // Demo mode seeds itself if the sample albums are missing or
+            // predate a schema addition (e.g. photo GPS) and need refreshing.
             guard demoMode else { return }
             let albums = (try? modelContext.fetch(FetchDescriptor<Album>())) ?? []
-            if !albums.contains(where: { $0.driveId.hasPrefix(MockData.idPrefix) }) {
+            let mocks = albums.filter { $0.driveId.hasPrefix(MockData.idPrefix) }
+            if mocks.isEmpty || mocks.contains(where: { album in album.items.contains { $0.latitude == nil } }) {
                 try? MockData.seed(into: modelContext)
             }
         }
@@ -134,7 +136,7 @@ struct MainTabView: View {
     private var content: some View {
         TabView(selection: $selectedTab) {
             AlbumListView()
-                .tabItem { Label("Slideshow", systemImage: "play.rectangle.on.rectangle") }
+                .tabItem { Label("Albums", systemImage: "photo.stack") }
                 .tag("slideshow")
             WorldMapView()
                 .tabItem { Label("World Map", systemImage: "globe.europe.africa.fill") }

@@ -11,16 +11,22 @@ struct SlideshowView: View {
     let baseItems: [MediaItem]
     let countryName: String?
     let forceShuffle: Bool
+    /// When set, the slideshow dismisses itself after this many seconds —
+    /// used by the map's World Tour to hop between countries.
+    let autoCloseAfter: TimeInterval?
 
-    init(album: Album) {
-        self.init(title: album.name, items: album.items, countryName: album.name)
+    init(album: Album, autoCloseAfter: TimeInterval? = nil) {
+        self.init(title: album.name, items: album.items, countryName: album.name,
+                  autoCloseAfter: autoCloseAfter)
     }
 
-    init(title: String, items: [MediaItem], countryName: String? = nil, forceShuffle: Bool = false) {
+    init(title: String, items: [MediaItem], countryName: String? = nil,
+         forceShuffle: Bool = false, autoCloseAfter: TimeInterval? = nil) {
         self.title = title
         self.baseItems = items
         self.countryName = countryName
         self.forceShuffle = forceShuffle
+        self.autoCloseAfter = autoCloseAfter
     }
 
     @Environment(\.dismiss) private var dismiss
@@ -135,6 +141,12 @@ struct SlideshowView: View {
             }
         )
         .task { await show(index: 0) }
+        .task {
+            guard let autoCloseAfter else { return }
+            try? await Task.sleep(nanoseconds: UInt64(autoCloseAfter * 1_000_000_000))
+            guard !Task.isCancelled else { return }
+            dismiss()
+        }
         .onAppear { UIApplication.shared.isIdleTimerDisabled = true }
         .onDisappear {
             UIApplication.shared.isIdleTimerDisabled = false

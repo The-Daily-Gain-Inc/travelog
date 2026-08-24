@@ -179,9 +179,15 @@ struct PhotoCluster: Identifiable {
 /// grouped into clusters that split apart as you zoom in).
 struct WorldMapView: View {
     enum MapMode: String, CaseIterable, Identifiable {
-        case countries, photos
+        case countries, regions, photos
         var id: String { rawValue }
-        var label: LocalizedStringKey { self == .countries ? "Countries" : "Photos" }
+        var label: LocalizedStringKey {
+            switch self {
+            case .countries: "Countries"
+            case .regions: "Regions"
+            case .photos: "Photos"
+            }
+        }
     }
 
     @Query private var albums: [Album]
@@ -192,6 +198,15 @@ struct WorldMapView: View {
     @State private var selectedCluster: PhotoCluster?
     @State private var visibleSpan = MKCoordinateSpan(latitudeDelta: 180, longitudeDelta: 360)
     @AppStorage("showTripLines") private var showTripLines = true
+    @AppStorage("flatMap") private var flatMap = false
+    @AppStorage("slideDuration") private var slideDuration: Double = 5
+
+    // World Tour: fly to a random country, play a short slideshow, repeat.
+    @State private var camera: MapCameraPosition = .rect(.world)
+    @State private var touring = false
+    @State private var tourAlbum: Album?
+    @State private var lastTourAlbumId: String?
+    @State private var tourTask: Task<Void, Never>?
 
     /// Resolved country per album (name match, alias, or GPS fallback).
     private var albumFeatures: [(album: Album, feature: CountryFeature)] {
@@ -238,10 +253,39 @@ struct WorldMapView: View {
         }
     }
 
+    /// State/province-scale grouping of located photos for Regions mode.
+    private var regionClusters: [PhotoCluster] {
+        let cell = 1.5
+        var buckets: [String: [MediaItem]] = [:]
+        for item in locatedItems {
+            guard let lat = item.latitude, let lon = item.longitude else { continue }
+            let key = "\(Int((lat / cell).rounded()))|\(Int((lon / cell).rounded()))"
+            buckets[key, default: []].append(item)
+        }
+        return buckets.map { key, items in
+            let lat = items.compactMap(\.latitude).reduce(0, +) / Double(items.count)
+            let lon = items.compactMap(\.longitude).reduce(0, +) / Double(items.count)
+            return PhotoCluster(id: key, coordinate: .init(latitude: lat, longitude: lon), items: items)
+        }
+    }
+
     var body: some View {
         NavigationStack {
             MapReader { proxy in
-                Map(initialPosition: .rect(.world)) {
+                Map(position: $camera) {
+                    if mode == .regions {
+                        ForEach(regionClusters) { cluster in
+                            MapCircle(center: cluster.coordinate,
+                                      radius: 60_000 + Double(min(cluster.items.count, 40)) * 2_000)
+                                .foregroundStyle(.orange.opacity(0.3))
+                                .stroke(.orange.opacity(0.85), lineWidth: 1.5)
+                            Annotation("", coordinate: cluster.coordinate) {
+                                Button { selectedCluster = cluster } label: {
+                                    RegionBadge(cluster: cluster)
+                                }
+                            }
+                        }
+                    }
                     if mode == .countries {
                         ForEach(albumFeatures, id: \.feature.id) { entry in
                             let tint = colorByFeatureId[entry.feature.id] ?? .orange
@@ -262,7 +306,7 @@ struct WorldMapView: View {
                                 }
                             }
                         }
-                    } else {
+                    } else if mode == .photos {
                         if showTripLines {
                             ForEach(albums) { album in
                                 let route = album.items
@@ -295,7 +339,7 @@ struct WorldMapView: View {
                         }
                     }
                 }
-                .mapStyle(.imagery(elevation: .realistic))
+                .mapStyle(flatMap ? .hybrid(elevation: .flat) : .imagery(elevation: .realistic))
                 .onMapCameraChange(frequency: .onEnd) { context in
                     visibleSpan = context.region.span
                 }
@@ -309,22 +353,46 @@ struct WorldMapView: View {
             }
             .ignoresSafeArea(edges: .bottom)
             .overlay(alignment: .top) {
-                Picker("Map filter", selection: $mode) {
-                    ForEach(MapMode.allCases) { m in
-                        Text(m.label).tag(m)
+                HStack(spacing: 10) {
+                    Picker("Map filter", selection: $mode) {
+                        ForEach(MapMode.allCases) { m in
+                            Text(m.label).tag(m)
+                        }
                     }
+                    .pickerStyle(.segmented)
+                    .frame(width: 340)
+
+                    Button {
+                        withAnimation { flatMap.toggle() }
+                    } label: {
+                        Image(systemName: flatMap ? "globe.americas.fill" : "map.fill")
+                            .font(.system(size: 17, weight: .semibold))
+                            .frame(width: 34, height: 30)
+                    }
+                    .help(flatMap ? Text("Switch to globe") : Text("Switch to flat map"))
+
+                    Button {
+                        touring ? stopTour() : startTour()
+                    } label: {
+                        Image(systemName: touring ? "stop.circle.fill" : "airplane.circle.fill")
+                            .font(.system(size: 22, weight: .semibold))
+                            .frame(width: 34, height: 30)
+                            .foregroundStyle(touring ? .red : .orange)
+                    }
+                    .help(touring ? Text("Stop the world tour") : Text("World tour: fly to a random country and play its photos"))
                 }
-                .pickerStyle(.segmented)
-                .frame(width: 260)
                 .padding(6)
                 .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
                 .padding(.top, 8)
             }
             .overlay(alignment: .bottomLeading) {
                 Group {
-                    if mode == .countries {
+                    switch mode {
+                    case .countries:
                         Label("\(visitedCount) countries visited", systemImage: "airplane.departure")
-                    } else {
+                    case .regions:
+                        Label("\(regionClusters.count) areas explored", systemImage: "map")
+                    case .photos:
                         Label("\(locatedItems.count) photos with location", systemImage: "mappin.and.ellipse")
                     }
                 }
@@ -343,7 +411,52 @@ struct WorldMapView: View {
             .sheet(item: $selectedCluster) { cluster in
                 PhotoClusterSheet(cluster: cluster)
             }
+            .fullScreenCover(item: $tourAlbum, onDismiss: nextTourLeg) { album in
+                SlideshowView(album: album, autoCloseAfter: slideDuration * 4 + 2)
+            }
+            .onDisappear { stopTour() }
         }
+    }
+
+    // MARK: - World Tour
+
+    private func startTour() {
+        guard !albumFeatures.isEmpty else { return }
+        touring = true
+        tourTask = Task { await tourLeg(delay: 0.3) }
+    }
+
+    private func stopTour() {
+        touring = false
+        tourTask?.cancel()
+        withAnimation(.easeInOut(duration: 1.5)) { camera = .rect(.world) }
+    }
+
+    private func nextTourLeg() {
+        guard touring else { return }
+        tourTask = Task {
+            withAnimation(.easeInOut(duration: 1.5)) { camera = .rect(.world) }
+            await tourLeg(delay: 2.2)
+        }
+    }
+
+    @MainActor
+    private func tourLeg(delay: TimeInterval) async {
+        try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+        guard touring, !Task.isCancelled else { return }
+        let candidates = albumFeatures.filter { $0.album.driveId != lastTourAlbumId }
+        guard let entry = (candidates.isEmpty ? albumFeatures : candidates).randomElement(),
+              let center = WorldGeometry.centroid(of: entry.feature) else {
+            stopTour()
+            return
+        }
+        lastTourAlbumId = entry.album.driveId
+        withAnimation(.easeInOut(duration: 2.5)) {
+            camera = .camera(MapCamera(centerCoordinate: center, distance: 2_600_000))
+        }
+        try? await Task.sleep(nanoseconds: 3_300_000_000)
+        guard touring, !Task.isCancelled else { return }
+        tourAlbum = entry.album
     }
 
     private func pinLabel(symbol: String, count: Int) -> some View {
@@ -375,6 +488,34 @@ struct WorldMapView: View {
         .padding(.vertical, 6)
         .background(tint.gradient, in: RoundedRectangle(cornerRadius: 10))
         .shadow(color: .black.opacity(0.5), radius: 4, y: 2)
+    }
+}
+
+/// Region-mode marker: reverse-geocoded area name with a photo count.
+struct RegionBadge: View {
+    let cluster: PhotoCluster
+    @State private var name: String?
+
+    var body: some View {
+        VStack(spacing: 2) {
+            Text(name ?? "…")
+                .font(.caption.bold())
+                .lineLimit(1)
+            Text("\(cluster.items.count)")
+                .font(.caption2.bold())
+                .opacity(0.85)
+        }
+        .foregroundStyle(.white)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(.orange.gradient, in: RoundedRectangle(cornerRadius: 10))
+        .shadow(color: .black.opacity(0.5), radius: 4, y: 2)
+        .task {
+            name = await PlaceLookup.shared.region(
+                latitude: cluster.coordinate.latitude,
+                longitude: cluster.coordinate.longitude
+            )
+        }
     }
 }
 
