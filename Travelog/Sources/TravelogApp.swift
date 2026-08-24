@@ -139,8 +139,6 @@ struct MainTabView: View {
     @EnvironmentObject private var auth: AuthService
     @EnvironmentObject private var sync: SyncService
     @State private var lastInteraction = Date.now
-    @State private var ambientShow = false
-    @State private var allItems: [MediaItem] = []
 
     var body: some View {
         content.task(id: auth.isSignedIn) {
@@ -165,19 +163,15 @@ struct MainTabView: View {
         // window touches passively — a gesture here would fight the controls.
         .background(TouchObserver { lastInteraction = .now })
         .onReceive(Timer.publish(every: 30, on: .main, in: .common).autoconnect()) { _ in
-            guard ambientMode, !ambientShow,
+            // Idle Photo Frame = the map's World Tour: hop the globe country
+            // by country, playing each album through.
+            guard ambientMode, !TourController.shared.isTouring,
                   Date.now.timeIntervalSince(lastInteraction) > ambientDelayMinutes * 60 else { return }
             let albums = (try? modelContext.fetch(FetchDescriptor<Album>())) ?? []
-            allItems = albums.flatMap(\.items)
-            guard !allItems.isEmpty else { return }
-            ambientShow = true
-        }
-        .fullScreenCover(isPresented: $ambientShow, onDismiss: { lastInteraction = .now }) {
-            SlideshowView(
-                title: String(localized: "Memories"),
-                items: allItems,
-                forceShuffle: true
-            )
+            guard albums.contains(where: { !$0.items.isEmpty }) else { return }
+            lastInteraction = .now
+            selectedTab = "map"
+            TourController.shared.tourRequested = true
         }
     }
 

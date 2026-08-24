@@ -116,7 +116,7 @@ struct SettingsView: View {
                 } header: {
                     Text("Photo Frame")
                 } footer: {
-                    Text("When idle, the app starts a shuffled slideshow of all your memories and keeps the screen awake.")
+                    Text("When idle, the app starts a World Tour on the map — flying to each country and playing its photos — and keeps the screen awake.")
                 }
 
                 Section("Map") {

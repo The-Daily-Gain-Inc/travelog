@@ -170,6 +170,15 @@ enum WorldGeometry {
     }
 }
 
+/// Bridge that lets other screens (the idle Photo Frame timer) start the
+/// map's World Tour.
+@MainActor
+final class TourController: ObservableObject {
+    static let shared = TourController()
+    @Published var tourRequested = false
+    @Published var isTouring = false
+}
+
 /// A group of photos taken near the same spot at the current zoom level.
 struct PhotoCluster: Identifiable {
     let id: String
@@ -201,7 +210,29 @@ struct WorldMapView: View {
     @State private var selectedCluster: PhotoCluster?
     @State private var visibleSpan = MKCoordinateSpan(latitudeDelta: 180, longitudeDelta: 360)
     @AppStorage("showTripLines") private var showTripLines = true
-    @AppStorage("flatMap") private var flatMap = false
+    @AppStorage("mapStyleChoice") private var mapStyleChoice = "globe"
+
+    private var currentMapStyle: MapStyle {
+        switch mapStyleChoice {
+        case "flatSat": .imagery(elevation: .flat)
+        case "standard": .standard(elevation: .flat, pointsOfInterest: .excludingAll)
+        case "hybrid": .hybrid(elevation: .flat, pointsOfInterest: .excludingAll)
+        default: .imagery(elevation: .realistic)
+        }
+    }
+
+    /// Camera rect that frames every visited country, slightly padded.
+    private var fitRect: MKMapRect {
+        var rect = MKMapRect.null
+        for entry in albumFeatures {
+            for polygon in entry.feature.polygons {
+                rect = rect.union(polygon.boundingMapRect)
+            }
+        }
+        guard !rect.isNull else { return .world }
+        let padW = rect.width * 0.2, padH = rect.height * 0.2
+        return rect.insetBy(dx: -padW, dy: -padH)
+    }
     @AppStorage("slideDuration") private var slideDuration: Double = 5
 
     // World Tour: fly to a random country, play a short slideshow, repeat.
@@ -212,6 +243,7 @@ struct WorldMapView: View {
     @State private var tourQueue: [String] = []
     @State private var tourTask: Task<Void, Never>?
     @State private var showVisitedList = false
+    @ObservedObject private var tourController = TourController.shared
 
     /// Resolved country per album (name match, alias, or GPS fallback).
     private var albumFeatures: [(album: Album, feature: CountryFeature)] {
@@ -344,7 +376,11 @@ struct WorldMapView: View {
                         }
                     }
                 }
-                .mapStyle(flatMap ? .hybrid(elevation: .flat) : .imagery(elevation: .realistic))
+                .mapStyle(currentMapStyle)
+                .mapControls {
+                    MapCompass()
+                    MapPitchToggle()
+                }
                 .onMapCameraChange(frequency: .onEnd) { context in
                     visibleSpan = context.region.span
                 }
@@ -411,15 +447,32 @@ struct WorldMapView: View {
                 .padding(20)
             }
             .overlay(alignment: .bottomTrailing) {
-                Button {
-                    withAnimation { flatMap.toggle() }
-                } label: {
-                    Image(systemName: flatMap ? "globe.americas.fill" : "map.fill")
-                        .font(.system(size: 20, weight: .semibold))
-                        .frame(width: 46, height: 46)
-                        .background(.ultraThinMaterial, in: Circle())
+                VStack(spacing: 12) {
+                    Menu {
+                        Picker("Map style", selection: $mapStyleChoice) {
+                            Label("3D Globe", systemImage: "globe.americas.fill").tag("globe")
+                            Label("Flat Satellite", systemImage: "map").tag("flatSat")
+                            Label("Standard", systemImage: "map.fill").tag("standard")
+                            Label("Hybrid", systemImage: "square.2.layers.3d").tag("hybrid")
+                        }
+                    } label: {
+                        Image(systemName: "square.3.layers.3d")
+                            .font(.system(size: 20, weight: .semibold))
+                            .frame(width: 46, height: 46)
+                            .background(.ultraThinMaterial, in: Circle())
+                    }
+                    .help(Text("Map style"))
+
+                    Button {
+                        withAnimation(.easeInOut(duration: 1.4)) { camera = .rect(fitRect) }
+                    } label: {
+                        Image(systemName: "scope")
+                            .font(.system(size: 20, weight: .semibold))
+                            .frame(width: 46, height: 46)
+                            .background(.ultraThinMaterial, in: Circle())
+                    }
+                    .help(Text("Frame all my travels"))
                 }
-                .help(flatMap ? Text("Switch to globe") : Text("Switch to flat map"))
                 .padding(20)
             }
             .navigationTitle("World Map")
@@ -441,7 +494,15 @@ struct WorldMapView: View {
                 }
             }
             .onDisappear { stopTour() }
+            .onAppear { consumeTourRequest() }
+            .onChange(of: tourController.tourRequested) { consumeTourRequest() }
         }
+    }
+
+    private func consumeTourRequest() {
+        guard tourController.tourRequested else { return }
+        tourController.tourRequested = false
+        if !touring { startTour() }
     }
 
     /// Opens the cluster nearest to a map tap, if it's reasonably close
@@ -467,12 +528,14 @@ struct WorldMapView: View {
     private func startTour() {
         guard !albumFeatures.isEmpty else { return }
         touring = true
+        tourController.isTouring = true
         tourQueue = []
         tourTask = Task { await tourLeg(delay: 0.3) }
     }
 
     private func stopTour() {
         touring = false
+        tourController.isTouring = false
         tourTask?.cancel()
         withAnimation(.easeInOut(duration: 1.5)) { camera = .rect(.world) }
     }
