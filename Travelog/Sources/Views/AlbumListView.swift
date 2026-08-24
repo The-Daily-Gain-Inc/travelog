@@ -5,7 +5,9 @@ import SwiftData
 struct AlbumListView: View {
     @Query(sort: \Album.name) private var albums: [Album]
     @EnvironmentObject private var sync: SyncService
+    @ObservedObject private var downloads = DownloadManager.shared
     @State private var slideshowAlbum: Album?
+    @State private var surpriseMe = false
 
     private let columns = [GridItem(.adaptive(minimum: 280, maximum: 400), spacing: 20)]
 
@@ -23,9 +25,17 @@ struct AlbumListView: View {
                     LazyVGrid(columns: columns, spacing: 20) {
                         ForEach(albums) { album in
                             Button { slideshowAlbum = album } label: {
-                                AlbumCard(album: album)
+                                AlbumCard(album: album, downloadProgress: downloads.progress[album.driveId])
                             }
                             .buttonStyle(.plain)
+                            .contextMenu {
+                                Button {
+                                    downloads.download(album)
+                                } label: {
+                                    Label("Download for Offline", systemImage: "arrow.down.circle")
+                                }
+                                .disabled(downloads.isDownloading(album))
+                            }
                         }
                     }
                     .padding(20)
@@ -33,6 +43,15 @@ struct AlbumListView: View {
             }
             .navigationTitle("Albums")
             .toolbar {
+                if !albums.isEmpty {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            surpriseMe = true
+                        } label: {
+                            Label("Surprise Me", systemImage: "shuffle")
+                        }
+                    }
+                }
                 if sync.isSyncing {
                     ToolbarItem(placement: .topBarTrailing) {
                         HStack(spacing: 8) {
@@ -47,12 +66,20 @@ struct AlbumListView: View {
             .fullScreenCover(item: $slideshowAlbum) { album in
                 SlideshowView(album: album)
             }
+            .fullScreenCover(isPresented: $surpriseMe) {
+                SlideshowView(
+                    title: String(localized: "Surprise Me"),
+                    items: albums.flatMap(\.items),
+                    forceShuffle: true
+                )
+            }
         }
     }
 }
 
 struct AlbumCard: View {
     let album: Album
+    var downloadProgress: Double?
     @State private var cover: UIImage?
 
     private var coverItem: MediaItem? {
@@ -73,6 +100,19 @@ struct AlbumCard: View {
                     .font(.system(size: 52))
                     .foregroundStyle(.white.opacity(0.85))
                     .shadow(radius: 6)
+                if let downloadProgress {
+                    VStack {
+                        HStack {
+                            Spacer()
+                            ProgressView(value: downloadProgress)
+                                .progressViewStyle(.circular)
+                                .tint(.white)
+                                .background(.black.opacity(0.4), in: Circle())
+                                .padding(10)
+                        }
+                        Spacer()
+                    }
+                }
             }
             .frame(height: 190)
             .clipped()
@@ -91,7 +131,7 @@ struct AlbumCard: View {
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .shadow(color: .black.opacity(0.12), radius: 8, y: 4)
         .task(id: coverItem?.driveId) {
-            guard cover == nil, let item = coverItem, !item.isVideo else { return }
+            guard cover == nil, let item = coverItem else { return }
             cover = try? await MediaCache.shared.thumbnail(for: (item.driveId, item.name))
         }
     }

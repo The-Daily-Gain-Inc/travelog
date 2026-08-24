@@ -2,12 +2,27 @@ import SwiftUI
 import AVKit
 import MapKit
 
-/// Fullscreen slideshow of an album's photos and videos. Status bar and home
-/// indicator are hidden; photos auto-advance, videos play through to the end.
-/// Tapping the image reveals an overlay with playback controls, a scrubber,
-/// slide-duration picker and a mini-map of the album's country.
+/// Fullscreen slideshow over any set of photos and videos (an album, a map
+/// cluster, or the whole library). Photos auto-advance with a Ken Burns drift;
+/// videos play through. Tapping reveals playback controls, a scrubber,
+/// slide-duration picker and a mini-map of where the current photo was taken.
 struct SlideshowView: View {
-    let album: Album
+    let title: String
+    let baseItems: [MediaItem]
+    let countryName: String?
+    let forceShuffle: Bool
+
+    init(album: Album) {
+        self.init(title: album.name, items: album.items, countryName: album.name)
+    }
+
+    init(title: String, items: [MediaItem], countryName: String? = nil, forceShuffle: Bool = false) {
+        self.title = title
+        self.baseItems = items
+        self.countryName = countryName
+        self.forceShuffle = forceShuffle
+    }
+
     @Environment(\.dismiss) private var dismiss
 
     @State private var index = 0
@@ -18,24 +33,50 @@ struct SlideshowView: View {
     @State private var isPlaying = true
     @State private var scrubIndex: Double = 0
     @State private var isScrubbing = false
+    @State private var kenBurnsActive = false
+    @State private var caption: String?
+    @State private var shuffleSeed = UInt64.random(in: 1...UInt64.max)
     @State private var advanceTask: Task<Void, Never>?
     @State private var hideControlsTask: Task<Void, Never>?
 
     @AppStorage("slideDuration") private var slideDuration: Double = 5
     @AppStorage("showsMiniMap") private var showsMiniMap = true
     @AppStorage("skipLivePhotos") private var skipLivePhotos = true
+    @AppStorage("kenBurns") private var kenBurns = true
+    @AppStorage("showCaptions") private var showCaptions = true
+    @AppStorage("shuffleSlides") private var shuffleSlides = false
+    @AppStorage("displayMaxPixel") private var displayMaxPixel: Double = 0
 
     private var items: [MediaItem] {
-        let all = album.items.sorted { $0.createdTime < $1.createdTime }
-        guard skipLivePhotos else { return all }
-        // A Live Photo exports as a still + a tiny video sharing the same
-        // basename; drop those companions so only real videos play.
-        let photoStems = Set(all.filter { !$0.isVideo }.map { stem($0.name) })
-        return all.filter { !$0.isVideo || !photoStems.contains(stem($0.name)) }
+        var all = baseItems.sorted { $0.createdTime < $1.createdTime }
+        if skipLivePhotos {
+            // A Live Photo exports as a still + a tiny video sharing the same
+            // basename; drop those companions so only real videos play.
+            let photoStems = Set(all.filter { !$0.isVideo }.map { stem($0.name) })
+            all = all.filter { !$0.isVideo || !photoStems.contains(stem($0.name)) }
+        }
+        if forceShuffle || shuffleSlides {
+            var rng = SeededRandom(seed: shuffleSeed)
+            all.shuffle(using: &rng)
+        }
+        return all
     }
 
     private func stem(_ name: String) -> String {
         (name as NSString).deletingPathExtension.lowercased()
+    }
+
+    private var currentItem: MediaItem? {
+        items.indices.contains(index) ? items[index] : nil
+    }
+
+    /// Where the current photo was taken; falls back to its album's country.
+    private var currentCoordinate: CLLocationCoordinate2D? {
+        if let lat = currentItem?.latitude, let lon = currentItem?.longitude {
+            return CLLocationCoordinate2D(latitude: lat, longitude: lon)
+        }
+        let country = currentItem?.album?.name ?? countryName
+        return country.flatMap { WorldGeometry.centroid(forCountryNamed: $0) }
     }
 
     var body: some View {
@@ -49,6 +90,8 @@ struct SlideshowView: View {
                 Image(uiImage: image)
                     .resizable()
                     .scaledToFit()
+                    .scaleEffect(kenBurnsActive ? 1.09 : 1.0, anchor: kenBurnsAnchor)
+                    .animation(kenBurnsActive ? .linear(duration: slideDuration + 1) : nil, value: kenBurnsActive)
                     .ignoresSafeArea()
                     .transition(.opacity)
                     .id(index)
@@ -57,6 +100,23 @@ struct SlideshowView: View {
                     .foregroundStyle(.white)
             } else {
                 ProgressView().tint(.white)
+            }
+
+            if showCaptions, let caption, !showControls {
+                VStack {
+                    Spacer()
+                    HStack {
+                        Text(caption)
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(.white.opacity(0.9))
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                            .background(.black.opacity(0.35), in: Capsule())
+                            .padding(20)
+                        Spacer()
+                    }
+                }
+                .transition(.opacity)
             }
 
             if showControls {
@@ -73,11 +133,18 @@ struct SlideshowView: View {
             }
         )
         .task { await show(index: 0) }
+        .onAppear { UIApplication.shared.isIdleTimerDisabled = true }
         .onDisappear {
+            UIApplication.shared.isIdleTimerDisabled = false
             advanceTask?.cancel()
             hideControlsTask?.cancel()
             player?.pause()
         }
+    }
+
+    private var kenBurnsAnchor: UnitPoint {
+        let anchors: [UnitPoint] = [.topLeading, .bottomTrailing, .topTrailing, .bottomLeading, .center]
+        return anchors[index % anchors.count]
     }
 
     // MARK: - Overlay
@@ -86,7 +153,7 @@ struct SlideshowView: View {
         VStack(spacing: 0) {
             topBar
             Spacer()
-            if showsMiniMap, let coordinate = WorldGeometry.centroid(forCountryNamed: album.name) {
+            if showsMiniMap, let coordinate = currentCoordinate {
                 HStack {
                     Spacer()
                     miniMap(coordinate: coordinate)
@@ -107,7 +174,7 @@ struct SlideshowView: View {
                     .foregroundStyle(.white.opacity(0.85))
             }
             Spacer()
-            Text("\(album.name) · \(index + 1)/\(items.count)")
+            Text("\(title) · \(index + 1)/\(items.count)")
                 .font(.headline)
                 .foregroundStyle(.white)
                 .padding(.horizontal, 16)
@@ -123,7 +190,7 @@ struct SlideshowView: View {
             if items.count > 1 {
                 Slider(
                     value: $scrubIndex,
-                    in: 0...Double(items.count - 1),
+                    in: 0...Double(max(items.count - 1, 1)),
                     step: 1
                 ) { editing in
                     isScrubbing = editing
@@ -133,7 +200,7 @@ struct SlideshowView: View {
             }
 
             HStack(spacing: 8) {
-                durationMenu
+                optionsMenu
                 Spacer()
                 HStack(spacing: 36) {
                     controlButton("backward.end.fill", size: 26) { advance(by: -1) }
@@ -155,7 +222,7 @@ struct SlideshowView: View {
         .padding(.bottom, 24)
     }
 
-    private var durationMenu: some View {
+    private var optionsMenu: some View {
         Menu {
             Picker("Slide duration", selection: $slideDuration) {
                 Text("2 s").tag(2.0)
@@ -164,6 +231,9 @@ struct SlideshowView: View {
                 Text("15 s").tag(15.0)
             }
             Divider()
+            Toggle("Shuffle", isOn: $shuffleSlides)
+            Toggle("Ken Burns effect", isOn: $kenBurns)
+            Toggle("Captions", isOn: $showCaptions)
             Toggle("Skip Live Photo clips", isOn: $skipLivePhotos)
         } label: {
             Label("\(Int(slideDuration)) s", systemImage: "timer")
@@ -173,9 +243,8 @@ struct SlideshowView: View {
         .onChange(of: slideDuration) {
             if isPlaying, player == nil { scheduleAdvance() }
         }
-        .onChange(of: skipLivePhotos) {
-            advance(to: index)
-        }
+        .onChange(of: skipLivePhotos) { advance(to: index) }
+        .onChange(of: shuffleSlides) { advance(to: 0) }
     }
 
     private func controlButton(_ symbol: String, size: CGFloat, action: @escaping () -> Void) -> some View {
@@ -187,8 +256,8 @@ struct SlideshowView: View {
     }
 
     private func miniMap(coordinate: CLLocationCoordinate2D) -> some View {
-        Map(initialPosition: .camera(MapCamera(centerCoordinate: coordinate, distance: 9_000_000))) {
-            Marker(album.name, coordinate: coordinate)
+        Map(position: .constant(.camera(MapCamera(centerCoordinate: coordinate, distance: 9_000_000)))) {
+            Marker(title, coordinate: coordinate)
                 .tint(.orange)
         }
         .mapStyle(.imagery(elevation: .flat))
@@ -197,6 +266,7 @@ struct SlideshowView: View {
         .clipShape(RoundedRectangle(cornerRadius: 18))
         .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(.white.opacity(0.35), lineWidth: 1))
         .shadow(radius: 12)
+        .id(index)
     }
 
     // MARK: - Control state
@@ -257,15 +327,18 @@ struct SlideshowView: View {
         player?.pause()
         player = nil
         image = nil
+        caption = nil
+        kenBurnsActive = false
         loadError = false
 
-        guard let url = try? await MediaCache.shared.file(for: (item.driveId, item.name)) else {
-            loadError = true
-            return
-        }
-        guard !Task.isCancelled else { return }
+        updateCaption(for: item)
 
         if item.isVideo {
+            guard let url = try? await MediaCache.shared.file(for: (item.driveId, item.name)) else {
+                loadError = true
+                return
+            }
+            guard !Task.isCancelled else { return }
             let p = AVPlayer(url: url)
             player = p
             if isPlaying { p.play() }
@@ -276,9 +349,17 @@ struct SlideshowView: View {
                 Task { @MainActor in advance(by: 1) }
             }
         } else {
-            withAnimation(.easeInOut(duration: 0.4)) {
-                image = UIImage(contentsOfFile: url.path)
+            guard let loaded = try? await MediaCache.shared.displayImage(
+                for: (item.driveId, item.name), maxPixel: displayMaxPixel
+            ) else {
+                loadError = true
+                return
             }
+            guard !Task.isCancelled else { return }
+            withAnimation(.easeInOut(duration: 0.4)) {
+                image = loaded
+            }
+            if kenBurns { kenBurnsActive = true }
             // Prefetch the next item while this one is on screen.
             if items.count > 1 {
                 let next = items[(newIndex + 1) % items.count]
@@ -286,5 +367,30 @@ struct SlideshowView: View {
             }
             if isPlaying { scheduleAdvance() }
         }
+    }
+
+    private func updateCaption(for item: MediaItem) {
+        let date = item.createdTime.formatted(.dateTime.month(.wide).year())
+        caption = date
+        guard let lat = item.latitude, let lon = item.longitude else { return }
+        let shownIndex = index
+        Task {
+            if let place = await PlaceLookup.shared.place(latitude: lat, longitude: lon),
+               index == shownIndex {
+                caption = "\(place) · \(date)"
+            }
+        }
+    }
+}
+
+/// Deterministic RNG so a shuffled slideshow keeps its order for its lifetime.
+struct SeededRandom: RandomNumberGenerator {
+    private var state: UInt64
+    init(seed: UInt64) { state = seed }
+    mutating func next() -> UInt64 {
+        state ^= state << 13
+        state ^= state >> 7
+        state ^= state << 17
+        return state
     }
 }

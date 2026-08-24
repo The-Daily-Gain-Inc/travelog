@@ -46,6 +46,10 @@ targets:
         UILaunchScreen: {}
         UIRequiresFullScreen: true
         GIDClientID: $(GOOGLE_CLIENT_ID)
+        UIBackgroundModes:
+          - fetch
+        BGTaskSchedulerPermittedIdentifiers:
+          - ca.thedailygain.Travelog.refresh
         CFBundleURLTypes:
           - CFBundleURLSchemes:
               - $(GOOGLE_URL_SCHEME)

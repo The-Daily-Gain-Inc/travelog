@@ -7,6 +7,14 @@ struct SettingsView: View {
     @Environment(\.modelContext) private var modelContext
     @AppStorage("demoMode") private var demoMode = false
     @AppStorage("rootFolderName") private var rootFolderName = "Travelog"
+    @AppStorage("displayMaxPixel") private var displayMaxPixel: Double = 0
+    @AppStorage("kenBurns") private var kenBurns = true
+    @AppStorage("showCaptions") private var showCaptions = true
+    @AppStorage("shuffleSlides") private var shuffleSlides = false
+    @AppStorage("skipLivePhotos") private var skipLivePhotos = true
+    @AppStorage("showTripLines") private var showTripLines = true
+    @AppStorage("ambientMode") private var ambientMode = false
+    @AppStorage("ambientDelayMinutes") private var ambientDelayMinutes = 5.0
     @Query private var albums: [Album]
     @State private var cacheSize: Int64 = 0
 
@@ -46,6 +54,39 @@ struct SettingsView: View {
                     if let error = sync.lastError {
                         Text(error).foregroundStyle(.red).font(.footnote)
                     }
+                }
+
+                Section("Slideshow") {
+                    Picker("Photo resolution", selection: $displayMaxPixel) {
+                        Text("Original").tag(0.0)
+                        Text("4K").tag(3840.0)
+                        Text("2K").tag(2048.0)
+                        Text("HD").tag(1280.0)
+                    }
+                    Toggle("Ken Burns effect", isOn: $kenBurns)
+                    Toggle("Captions (place & date)", isOn: $showCaptions)
+                    Toggle("Shuffle", isOn: $shuffleSlides)
+                    Toggle("Skip Live Photo clips", isOn: $skipLivePhotos)
+                }
+
+                Section {
+                    Toggle("Photo Frame mode", isOn: $ambientMode)
+                    if ambientMode {
+                        Picker("Start after", selection: $ambientDelayMinutes) {
+                            Text("1 minute").tag(1.0)
+                            Text("5 minutes").tag(5.0)
+                            Text("15 minutes").tag(15.0)
+                            Text("30 minutes").tag(30.0)
+                        }
+                    }
+                } header: {
+                    Text("Photo Frame")
+                } footer: {
+                    Text("When idle, the app starts a shuffled slideshow of all your memories and keeps the screen awake.")
+                }
+
+                Section("Map") {
+                    Toggle("Trip lines between photos", isOn: $showTripLines)
                 }
 
                 Section("Library") {

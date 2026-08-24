@@ -31,6 +31,14 @@ struct CountryGridView: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
+                        DownloadManager.shared.download(album)
+                    } label: {
+                        Label("Download for Offline", systemImage: "arrow.down.circle")
+                    }
+                    .disabled(DownloadManager.shared.isDownloading(album))
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
                         showSlideshow = true
                     } label: {
                         Label("Slideshow", systemImage: "play.fill")
@@ -65,7 +73,7 @@ struct MediaThumbnail: View {
         }
         .clipShape(RoundedRectangle(cornerRadius: 6))
         .task {
-            guard image == nil, !item.isVideo else { return }
+            guard image == nil else { return }
             image = try? await MediaCache.shared.thumbnail(for: (item.driveId, item.name))
         }
     }

@@ -78,6 +78,7 @@ struct WorldMapView: View {
     @State private var selectedAlbum: Album?
     @State private var selectedCluster: PhotoCluster?
     @State private var visibleSpan = MKCoordinateSpan(latitudeDelta: 180, longitudeDelta: 360)
+    @AppStorage("showTripLines") private var showTripLines = true
 
     private var albumsByCountry: [String: Album] {
         Dictionary(albums.map { ($0.name.lowercased(), $0) }, uniquingKeysWith: { a, _ in a })
@@ -132,6 +133,19 @@ struct WorldMapView: View {
                             }
                         }
                     } else {
+                        if showTripLines {
+                            ForEach(albums) { album in
+                                let route = album.items
+                                    .filter { $0.latitude != nil && $0.longitude != nil }
+                                    .sorted { $0.createdTime < $1.createdTime }
+                                    .map { CLLocationCoordinate2D(latitude: $0.latitude!, longitude: $0.longitude!) }
+                                if route.count > 1 {
+                                    MapPolyline(coordinates: route)
+                                        .stroke(.orange.opacity(0.8),
+                                                style: StrokeStyle(lineWidth: 2.5, lineCap: .round, dash: [6, 5]))
+                                }
+                            }
+                        }
                         ForEach(photoClusters) { cluster in
                             Annotation(cluster.items.count == 1 ? cluster.items[0].album?.name ?? "" : "",
                                        coordinate: cluster.coordinate) {
@@ -221,6 +235,7 @@ struct WorldMapView: View {
 struct PhotoClusterSheet: View {
     let cluster: PhotoCluster
     @Environment(\.dismiss) private var dismiss
+    @State private var showSlideshow = false
 
     private let columns = [GridItem(.adaptive(minimum: 140, maximum: 220), spacing: 12)]
 
@@ -237,9 +252,22 @@ struct PhotoClusterSheet: View {
             .navigationTitle(Text("\(cluster.items.count) photos here"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        showSlideshow = true
+                    } label: {
+                        Label("Slideshow", systemImage: "play.fill")
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button { dismiss() } label: { Image(systemName: "xmark.circle.fill") }
                 }
+            }
+            .fullScreenCover(isPresented: $showSlideshow) {
+                SlideshowView(
+                    title: cluster.items.first?.album?.name ?? String(localized: "This spot"),
+                    items: cluster.items
+                )
             }
         }
     }

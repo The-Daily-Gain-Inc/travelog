@@ -1,5 +1,6 @@
 import Foundation
 import UIKit
+import AVFoundation
 
 /// Downloads Drive media to the caches directory and hands back local URLs.
 /// Full files are cached by drive id; thumbnails are downscaled and cached separately.
@@ -50,13 +51,46 @@ actor MediaCache {
         return try await task.value
     }
 
-    /// Downscaled thumbnail for grids. Videos get a generated poster frame elsewhere; here images only.
+    /// Downscaled thumbnail for grids. Photos are decoded via ImageIO; videos
+    /// get a poster frame extracted from the start of the clip.
     func thumbnail(for item: (driveId: String, name: String), maxPixel: CGFloat = 600) async throws -> UIImage {
         let thumbURL = localURL(for: item.driveId + "_thumb", ext: "jpg")
         if let data = try? Data(contentsOf: thumbURL), let img = UIImage(data: data) { return img }
 
         let full = try await file(for: item)
-        guard let src = CGImageSourceCreateWithURL(full as CFURL, nil),
+        let img: UIImage
+        if ["mp4", "mov", "m4v", "avi", "webm"].contains(full.pathExtension.lowercased()) {
+            let generator = AVAssetImageGenerator(asset: AVURLAsset(url: full))
+            generator.appliesPreferredTrackTransform = true
+            generator.maximumSize = CGSize(width: maxPixel, height: maxPixel)
+            let cg = try await generator.image(at: CMTime(seconds: 0.5, preferredTimescale: 600)).image
+            img = UIImage(cgImage: cg)
+        } else {
+            img = try Self.downsample(url: full, maxPixel: maxPixel)
+        }
+        try? img.jpegData(compressionQuality: 0.8)?.write(to: thumbURL)
+        return img
+    }
+
+    /// Full-quality-ish image for the slideshow, honoring the user's display
+    /// resolution setting (0 = original file, decoded as-is).
+    func displayImage(for item: (driveId: String, name: String), maxPixel: CGFloat) async throws -> UIImage {
+        let full = try await file(for: item)
+        guard maxPixel > 0 else {
+            guard let img = UIImage(contentsOfFile: full.path) else {
+                throw URLError(.cannotDecodeContentData)
+            }
+            return img
+        }
+        let cacheURL = localURL(for: item.driveId + "_disp\(Int(maxPixel))", ext: "jpg")
+        if let data = try? Data(contentsOf: cacheURL), let img = UIImage(data: data) { return img }
+        let img = try Self.downsample(url: full, maxPixel: maxPixel)
+        try? img.jpegData(compressionQuality: 0.9)?.write(to: cacheURL)
+        return img
+    }
+
+    private static func downsample(url: URL, maxPixel: CGFloat) throws -> UIImage {
+        guard let src = CGImageSourceCreateWithURL(url as CFURL, nil),
               let cg = CGImageSourceCreateThumbnailAtIndex(src, 0, [
                 kCGImageSourceCreateThumbnailFromImageAlways: true,
                 kCGImageSourceThumbnailMaxPixelSize: maxPixel,
@@ -64,9 +98,7 @@ actor MediaCache {
               ] as CFDictionary) else {
             throw URLError(.cannotDecodeContentData)
         }
-        let img = UIImage(cgImage: cg)
-        try? img.jpegData(compressionQuality: 0.8)?.write(to: thumbURL)
-        return img
+        return UIImage(cgImage: cg)
     }
 
     func clear() {
