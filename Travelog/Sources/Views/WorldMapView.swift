@@ -208,6 +208,7 @@ struct WorldMapView: View {
     @State private var lastTourAlbumId: String?
     @State private var tourQueue: [String] = []
     @State private var tourTask: Task<Void, Never>?
+    @State private var showVisitedList = false
 
     /// Resolved country per album (name match, alias, or GPS fallback).
     private var albumFeatures: [(album: Album, feature: CountryFeature)] {
@@ -371,15 +372,6 @@ struct WorldMapView: View {
                     .frame(width: 340)
 
                     Button {
-                        withAnimation { flatMap.toggle() }
-                    } label: {
-                        Image(systemName: flatMap ? "globe.americas.fill" : "map.fill")
-                            .font(.system(size: 17, weight: .semibold))
-                            .frame(width: 34, height: 30)
-                    }
-                    .help(flatMap ? Text("Switch to globe") : Text("Switch to flat map"))
-
-                    Button {
                         touring ? stopTour() : startTour()
                     } label: {
                         Image(systemName: touring ? "stop.circle.fill" : "airplane.circle.fill")
@@ -397,7 +389,11 @@ struct WorldMapView: View {
                 Group {
                     switch mode {
                     case .countries:
-                        Label("\(visitedCount) countries visited", systemImage: "airplane.departure")
+                        Button {
+                            showVisitedList = true
+                        } label: {
+                            Label("\(visitedCount) countries visited", systemImage: "airplane.departure")
+                        }
                     case .regions:
                         Label("\(regionClusters.count) areas explored", systemImage: "map")
                     case .photos:
@@ -405,9 +401,22 @@ struct WorldMapView: View {
                     }
                 }
                 .font(.subheadline.bold())
+                .foregroundStyle(.primary)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 9)
                 .background(.ultraThinMaterial, in: Capsule())
+                .padding(20)
+            }
+            .overlay(alignment: .bottomTrailing) {
+                Button {
+                    withAnimation { flatMap.toggle() }
+                } label: {
+                    Image(systemName: flatMap ? "globe.americas.fill" : "map.fill")
+                        .font(.system(size: 20, weight: .semibold))
+                        .frame(width: 46, height: 46)
+                        .background(.ultraThinMaterial, in: Circle())
+                }
+                .help(flatMap ? Text("Switch to globe") : Text("Switch to flat map"))
                 .padding(20)
             }
             .navigationTitle("World Map")
@@ -421,6 +430,12 @@ struct WorldMapView: View {
             }
             .fullScreenCover(item: $tourAlbum, onDismiss: nextTourLeg) { album in
                 SlideshowView(album: album, closeAtEnd: true)
+            }
+            .sheet(isPresented: $showVisitedList) {
+                VisitedCountriesSheet(entries: albumFeatures) { album in
+                    showVisitedList = false
+                    selectedAlbum = album
+                }
             }
             .onDisappear { stopTour() }
         }
@@ -525,6 +540,52 @@ struct WorldMapView: View {
         .padding(.vertical, 6)
         .background(tint.gradient, in: RoundedRectangle(cornerRadius: 10))
         .shadow(color: .black.opacity(0.5), radius: 4, y: 2)
+    }
+}
+
+/// Modal listing every visited country with its flag; tapping opens the album.
+struct VisitedCountriesSheet: View {
+    let entries: [(album: Album, feature: CountryFeature)]
+    let onSelect: (Album) -> Void
+    @Environment(\.dismiss) private var dismiss
+
+    private let columns = [GridItem(.adaptive(minimum: 170, maximum: 240), spacing: 14)]
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                LazyVGrid(columns: columns, spacing: 14) {
+                    ForEach(entries.sorted { $0.album.name < $1.album.name }, id: \.feature.id) { entry in
+                        Button {
+                            onSelect(entry.album)
+                        } label: {
+                            VStack(spacing: 6) {
+                                Text(WorldGeometry.flag(for: entry.feature) ?? "🏳️")
+                                    .font(.system(size: 52))
+                                Text(entry.album.name)
+                                    .font(.headline)
+                                    .lineLimit(1)
+                                Text("\(entry.album.items.count) photos")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 18)
+                            .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 16))
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(16)
+            }
+            .navigationTitle(Text("\(entries.count) countries visited"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { dismiss() } label: { Image(systemName: "xmark.circle.fill") }
+                }
+            }
+        }
     }
 }
 

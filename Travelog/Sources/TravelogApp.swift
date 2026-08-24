@@ -63,6 +63,58 @@ struct TravelogApp: App {
     }
 }
 
+/// Reports every window touch without ever claiming it (recognizer fails
+/// immediately and doesn't cancel touches), so controls behave normally.
+struct TouchObserver: UIViewRepresentable {
+    let onTouch: () -> Void
+
+    func makeUIView(context: Context) -> UIView {
+        let view = HostView()
+        view.onTouch = onTouch
+        return view
+    }
+
+    func updateUIView(_ uiView: UIView, context: Context) {
+        (uiView as? HostView)?.onTouch = onTouch
+    }
+
+    final class HostView: UIView {
+        var onTouch: (() -> Void)?
+        private weak var recognizer: UIGestureRecognizer?
+
+        override func didMoveToWindow() {
+            super.didMoveToWindow()
+            guard recognizer == nil, let window else { return }
+            let r = Recognizer()
+            r.onTouch = { [weak self] in self?.onTouch?() }
+            r.cancelsTouchesInView = false
+            r.delaysTouchesBegan = false
+            r.delaysTouchesEnded = false
+            window.addGestureRecognizer(r)
+            recognizer = r
+        }
+    }
+
+    final class Recognizer: UIGestureRecognizer, UIGestureRecognizerDelegate {
+        var onTouch: (() -> Void)?
+
+        init() {
+            super.init(target: nil, action: nil)
+            delegate = self
+        }
+
+        override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
+            onTouch?()
+            state = .failed
+        }
+
+        func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
+                               shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer) -> Bool {
+            true
+        }
+    }
+}
+
 struct RootView: View {
     @EnvironmentObject private var auth: AuthService
     @AppStorage("demoMode") private var demoMode = false
@@ -109,10 +161,9 @@ struct MainTabView: View {
             }
         }
         // Ambient mode: any touch resets the idle clock; after the configured
-        // quiet period the app turns into a photo frame.
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 0).onChanged { _ in lastInteraction = .now }
-        )
+        // quiet period the app turns into a photo frame. The observer watches
+        // window touches passively — a gesture here would fight the controls.
+        .background(TouchObserver { lastInteraction = .now })
         .onReceive(Timer.publish(every: 30, on: .main, in: .common).autoconnect()) { _ in
             guard ambientMode, !ambientShow,
                   Date.now.timeIntervalSince(lastInteraction) > ambientDelayMinutes * 60 else { return }
