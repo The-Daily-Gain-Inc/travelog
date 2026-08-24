@@ -248,23 +248,27 @@ struct OnThisDayCard: View {
     @State private var image: UIImage?
 
     var body: some View {
-        ZStack(alignment: .bottomLeading) {
-            Rectangle().fill(.quaternary)
-            if let image {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFill()
+        Rectangle()
+            .fill(.quaternary)
+            .overlay {
+                if let image {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFill()
+                }
             }
-            Text(item.createdTime.formatted(.dateTime.year()))
-                .font(.caption2.bold())
-                .foregroundStyle(.white)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(.black.opacity(0.5), in: Capsule())
-                .padding(6)
-        }
+            .overlay(alignment: .bottomLeading) {
+                Text(item.createdTime.formatted(.dateTime.year()))
+                    .font(.caption2.bold())
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(.black.opacity(0.5), in: Capsule())
+                    .padding(6)
+            }
         .frame(width: 150, height: 110)
         .clipShape(RoundedRectangle(cornerRadius: 12))
+        .contentShape(Rectangle())
         .task {
             image = try? await MediaCache.shared.thumbnail(for: (item.driveId, item.name))
         }
@@ -288,43 +292,36 @@ struct AlbumCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            ZStack {
-                Rectangle().fill(.quaternary)
-                if let cover {
-                    Image(uiImage: cover)
-                        .resizable()
-                        .scaledToFill()
-                }
-                Image(systemName: "play.circle.fill")
-                    .font(.system(size: 52))
-                    .foregroundStyle(.white.opacity(0.85))
-                    .shadow(radius: 6)
-                if let downloadProgress {
-                    VStack {
-                        HStack {
-                            Spacer()
-                            ProgressView(value: downloadProgress)
-                                .progressViewStyle(.circular)
-                                .tint(.white)
-                                .background(.black.opacity(0.4), in: Circle())
-                                .padding(10)
-                        }
-                        Spacer()
-                    }
-                } else if fullyCached {
-                    VStack {
-                        HStack {
-                            Spacer()
-                            Image(systemName: "checkmark.icloud.fill")
-                                .foregroundStyle(.white)
-                                .shadow(radius: 3)
-                                .padding(10)
-                                .accessibilityLabel(Text("Available offline"))
-                        }
-                        Spacer()
+            Rectangle()
+                .fill(.quaternary)
+                .overlay {
+                    if let cover {
+                        Image(uiImage: cover)
+                            .resizable()
+                            .scaledToFill()
                     }
                 }
-            }
+                .overlay {
+                    Image(systemName: "play.circle.fill")
+                        .font(.system(size: 52))
+                        .foregroundStyle(.white.opacity(0.85))
+                        .shadow(radius: 6)
+                }
+                .overlay(alignment: .topTrailing) {
+                    if let downloadProgress {
+                        ProgressView(value: downloadProgress)
+                            .progressViewStyle(.circular)
+                            .tint(.white)
+                            .background(.black.opacity(0.4), in: Circle())
+                            .padding(10)
+                    } else if fullyCached {
+                        Image(systemName: "checkmark.icloud.fill")
+                            .foregroundStyle(.white)
+                            .shadow(radius: 3)
+                            .padding(10)
+                            .accessibilityLabel(Text("Available offline"))
+                    }
+                }
             .frame(height: 190)
             .clipped()
 

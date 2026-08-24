@@ -417,38 +417,40 @@ struct MediaThumbnail: View {
     @State private var image: UIImage?
 
     var body: some View {
-        ZStack {
-            Rectangle().fill(.quaternary)
-            if let image {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFill()
-            }
-            if item.isVideo {
-                Image(systemName: "video.fill")
-                    .font(.title2)
-                    .foregroundStyle(.white)
-                    .shadow(radius: 4)
-            }
-            if item.isFavorite {
-                VStack {
-                    Spacer()
-                    HStack {
-                        Image(systemName: "heart.fill")
-                            .font(.caption)
-                            .foregroundStyle(.red)
-                            .shadow(radius: 3)
-                            .padding(6)
-                        Spacer()
-                    }
+        // The image is drawn as an overlay so its natural size can never
+        // drive layout — the grid cell decides, the photo fills and clips.
+        Rectangle()
+            .fill(.quaternary)
+            .overlay {
+                if let image {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFill()
                 }
             }
-        }
-        .clipShape(RoundedRectangle(cornerRadius: 6))
-        .opacity(item.isHidden ? 0.4 : 1)
-        .task {
-            guard image == nil else { return }
-            image = try? await MediaCache.shared.thumbnail(for: (item.driveId, item.name))
-        }
+            .overlay {
+                if item.isVideo {
+                    Image(systemName: "video.fill")
+                        .font(.title2)
+                        .foregroundStyle(.white)
+                        .shadow(radius: 4)
+                }
+            }
+            .overlay(alignment: .bottomLeading) {
+                if item.isFavorite {
+                    Image(systemName: "heart.fill")
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                        .shadow(radius: 3)
+                        .padding(6)
+                }
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 6))
+            .contentShape(Rectangle())
+            .opacity(item.isHidden ? 0.4 : 1)
+            .task {
+                guard image == nil else { return }
+                image = try? await MediaCache.shared.thumbnail(for: (item.driveId, item.name))
+            }
     }
 }

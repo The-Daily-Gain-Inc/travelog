@@ -16,11 +16,18 @@ struct QuizView: View {
     @State private var picked: String?
     @State private var image: UIImage?
     @State private var finished = false
+    @State private var notEnoughData = false
 
     var body: some View {
         NavigationStack {
             Group {
-                if finished {
+                if notEnoughData {
+                    ContentUnavailableView(
+                        "Not Enough Countries Yet",
+                        systemImage: "globe.desk",
+                        description: Text("The quiz needs photos from at least two countries. Sync more albums and come back!")
+                    )
+                } else if finished {
                     resultView
                 } else if rounds.indices.contains(current) {
                     roundView(rounds[current])
@@ -48,17 +55,20 @@ struct QuizView: View {
 
     private func roundView(_ round: (item: MediaItem, answer: String, options: [String])) -> some View {
         VStack(spacing: 20) {
-            ZStack {
-                Rectangle().fill(.quaternary)
-                if let image {
-                    Image(uiImage: image)
-                        .resizable()
-                        .scaledToFill()
+            Rectangle()
+                .fill(.quaternary)
+                .overlay {
+                    if let image {
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFill()
+                    } else {
+                        ProgressView()
+                    }
                 }
-            }
-            .frame(maxWidth: 700, maxHeight: 420)
-            .clipShape(RoundedRectangle(cornerRadius: 20))
-            .padding(.horizontal, 24)
+                .frame(maxWidth: 700, maxHeight: 420)
+                .clipShape(RoundedRectangle(cornerRadius: 20))
+                .padding(.horizontal, 24)
 
             VStack(spacing: 12) {
                 ForEach(round.options, id: \.self) { option in
@@ -157,17 +167,28 @@ struct QuizView: View {
 
     private func startGame() {
         let eligible = albums.filter { $0.items.contains { !$0.isVideo && !$0.isHidden } }
-        let countryNames = albums.map(\.name)
-        guard eligible.count >= 2, countryNames.count >= 4 else { return }
+        let countryNames = Set(albums.map(\.name))
+        // The game needs at least two countries to be a game at all.
+        guard eligible.count >= 2, countryNames.count >= 2 else {
+            notEnoughData = true
+            return
+        }
         var built: [(MediaItem, String, [String])] = []
         for _ in 0..<Self.roundCount {
             guard let album = eligible.randomElement(),
                   let item = album.items.filter({ !$0.isVideo && !$0.isHidden }).randomElement() else { continue }
             var options = Set([album.name])
-            while options.count < min(4, countryNames.count) {
+            let optionTarget = min(4, countryNames.count)
+            var attempts = 0
+            while options.count < optionTarget, attempts < 50 {
                 if let other = countryNames.randomElement() { options.insert(other) }
+                attempts += 1
             }
             built.append((item, album.name, options.shuffled()))
+        }
+        guard !built.isEmpty else {
+            notEnoughData = true
+            return
         }
         rounds = built
         current = 0

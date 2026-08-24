@@ -257,27 +257,33 @@ struct HighlightCard: View {
     @State private var cover: UIImage?
 
     var body: some View {
-        ZStack(alignment: .bottomLeading) {
-            Rectangle().fill(.quaternary)
-            if let cover {
-                Image(uiImage: cover)
-                    .resizable()
-                    .scaledToFill()
+        Rectangle()
+            .fill(.quaternary)
+            .overlay {
+                if let cover {
+                    Image(uiImage: cover)
+                        .resizable()
+                        .scaledToFill()
+                }
             }
-            LinearGradient(colors: [.clear, .black.opacity(0.65)], startPoint: .center, endPoint: .bottom)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(highlight.title)
-                    .font(.subheadline.bold())
-                    .lineLimit(2)
-                Text("\(highlight.items.count) photos")
-                    .font(.caption2)
-                    .opacity(0.85)
+            .overlay {
+                LinearGradient(colors: [.clear, .black.opacity(0.65)], startPoint: .center, endPoint: .bottom)
             }
-            .foregroundStyle(.white)
-            .padding(10)
-        }
+            .overlay(alignment: .bottomLeading) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(highlight.title)
+                        .font(.subheadline.bold())
+                        .lineLimit(2)
+                    Text("\(highlight.items.count) photos")
+                        .font(.caption2)
+                        .opacity(0.85)
+                }
+                .foregroundStyle(.white)
+                .padding(10)
+            }
         .frame(width: 168, height: 220)
         .clipShape(RoundedRectangle(cornerRadius: 16))
+        .contentShape(Rectangle())
         .task {
             guard cover == nil,
                   let item = highlight.items.first(where: { !$0.isVideo }) ?? highlight.items.first else { return }

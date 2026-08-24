@@ -172,6 +172,15 @@ struct RootView: View {
     @AppStorage("demoMode") private var demoMode = false
     // Referenced so accent changes re-render the whole tree immediately.
     @AppStorage("accentTheme") private var accentTheme = "orange"
+    @AppStorage("appearance") private var appearance = "system"
+
+    private var colorScheme: ColorScheme? {
+        switch appearance {
+        case "light": .light
+        case "dark": .dark
+        default: nil
+        }
+    }
 
     var body: some View {
         Group {
@@ -184,6 +193,7 @@ struct RootView: View {
             }
         }
         .tint(Color.appAccent)
+        .preferredColorScheme(colorScheme)
         .id(accentTheme)
     }
 }

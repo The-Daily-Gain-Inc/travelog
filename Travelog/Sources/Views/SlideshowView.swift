@@ -696,16 +696,18 @@ struct FilmstripThumb: View {
     @State private var image: UIImage?
 
     var body: some View {
-        ZStack {
-            Rectangle().fill(.black.opacity(0.4))
-            if let image {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFill()
+        Rectangle()
+            .fill(.black.opacity(0.4))
+            .overlay {
+                if let image {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFill()
+                }
             }
-        }
         .frame(width: 62, height: 54)
         .clipShape(RoundedRectangle(cornerRadius: 8))
+        .contentShape(Rectangle())
         .overlay(
             RoundedRectangle(cornerRadius: 8)
                 .strokeBorder(isCurrent ? Color.appAccent : .white.opacity(0.25),

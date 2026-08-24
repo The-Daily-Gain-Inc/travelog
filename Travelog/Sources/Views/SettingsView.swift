@@ -16,6 +16,7 @@ struct SettingsView: View {
     @AppStorage("transitionStyle") private var transitionStyle = "fade"
     @AppStorage("muteVideos") private var muteVideos = false
     @AppStorage("accentTheme") private var accentTheme = "orange"
+    @AppStorage("appearance") private var appearance = "system"
     @AppStorage("dailyMemoryNotification") private var dailyMemoryNotification = false
     @AppStorage("videoLimitSeconds") private var videoLimitSeconds: Double = 0
     @AppStorage("sleepTimerMinutes") private var sleepTimerMinutes: Double = 0
@@ -180,6 +181,12 @@ struct SettingsView: View {
                 }
 
                 Section("Appearance") {
+                    Picker("Theme", selection: $appearance) {
+                        Text("System").tag("system")
+                        Text("Light").tag("light")
+                        Text("Dark").tag("dark")
+                    }
+                    .pickerStyle(.segmented)
                     Picker("Accent color", selection: $accentTheme) {
                         Text("Orange").tag("orange")
                         Text("Blue").tag("blue")

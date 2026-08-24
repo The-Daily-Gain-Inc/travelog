@@ -1231,25 +1231,29 @@ struct ClusterThumbnail: View {
     @State private var image: UIImage?
 
     var body: some View {
-        ZStack(alignment: .bottomLeading) {
-            Rectangle().fill(.quaternary)
-            if let image {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFill()
+        Rectangle()
+            .fill(.quaternary)
+            .overlay {
+                if let image {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFill()
+                }
             }
-            if let album = item.album?.name {
-                Text(album)
-                    .font(.caption2.bold())
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(.black.opacity(0.45), in: Capsule())
-                    .padding(6)
+            .overlay(alignment: .bottomLeading) {
+                if let album = item.album?.name {
+                    Text(album)
+                        .font(.caption2.bold())
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(.black.opacity(0.45), in: Capsule())
+                        .padding(6)
+                }
             }
-        }
         .frame(height: 140)
         .clipShape(RoundedRectangle(cornerRadius: 12))
+        .contentShape(Rectangle())
         .task {
             guard !item.isVideo else { return }
             image = try? await MediaCache.shared.thumbnail(for: (item.driveId, item.name))
