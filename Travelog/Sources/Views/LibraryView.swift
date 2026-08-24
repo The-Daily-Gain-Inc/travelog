@@ -147,7 +147,7 @@ struct LibraryView: View {
                                     }
                                 }
                             } header: {
-                                Text(section.title)
+                                Text("\(section.title) · \(section.items.count)")
                                     .font(.headline)
                                     .padding(.horizontal, 12)
                                     .padding(.vertical, 6)

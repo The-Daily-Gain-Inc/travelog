@@ -13,6 +13,7 @@ struct StatsView: View {
     @Query private var albums: [Album]
     @State private var showPassport = false
     @State private var showQuiz = false
+    @State private var statsCard: UIImage?
     @AppStorage("wishlistIds") private var wishlistIdsRaw = ""
 
     private var wishlistCountries: [CountryFeature] {
@@ -206,6 +207,10 @@ struct StatsView: View {
                                         .font(.subheadline)
                                         .foregroundStyle(.secondary)
                                     Spacer()
+                                    ShareLink(item: yearSummaryText(entry.year, count: entry.count)) {
+                                        Image(systemName: "square.and.arrow.up")
+                                            .foregroundStyle(.secondary)
+                                    }
                                     Image(systemName: "play.circle.fill")
                                         .font(.title2)
                                         .foregroundStyle(Color.appAccent)
@@ -293,6 +298,17 @@ struct StatsView: View {
                 }
             }
             .navigationTitle("Stats")
+            .toolbar {
+                if let statsCard {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        ShareLink(
+                            item: Image(uiImage: statsCard),
+                            preview: SharePreview(Text("My Travel Stats"), image: Image(uiImage: statsCard))
+                        )
+                    }
+                }
+            }
+            .task { renderStatsCard() }
             .sheet(isPresented: $showPassport) {
                 PassportView(albums: albums)
             }
@@ -309,10 +325,49 @@ struct StatsView: View {
         }
     }
 
+    /// Shareable summary card image.
+    @MainActor
+    private func renderStatsCard() {
+        guard !allItems.isEmpty else { return }
+        let card = VStack(alignment: .leading, spacing: 14) {
+            Text("✈️ My Travelog")
+                .font(.system(size: 40, weight: .bold, design: .rounded))
+            Text("\(visitedFeatures.count) countries · \(Int((Double(visitedFeatures.count) / 195 * 100).rounded()))% of the world")
+                .font(.title2.bold())
+            Text("\(allItems.count) memories · \(Int(totalDistanceKm.rounded()).formatted()) km traveled")
+                .font(.title3)
+            if let top = topAlbum {
+                Text("Most photographed: \(top.name)")
+                    .font(.title3)
+            }
+            HStack(spacing: 8) {
+                ForEach(visitedFeatures.prefix(10), id: \.id) { f in
+                    Text(WorldGeometry.flag(for: f) ?? "")
+                        .font(.system(size: 34))
+                }
+            }
+        }
+        .foregroundStyle(.white)
+        .padding(40)
+        .frame(width: 760, alignment: .leading)
+        .background(
+            LinearGradient(colors: [Color(red: 0.12, green: 0.17, blue: 0.30),
+                                    Color(red: 0.30, green: 0.16, blue: 0.32)],
+                           startPoint: .topLeading, endPoint: .bottomTrailing)
+        )
+        let renderer = ImageRenderer(content: card)
+        renderer.scale = 2
+        statsCard = renderer.uiImage
+    }
+
     private func yearRecap(for year: Int) -> YearRecap {
         let calendar = Calendar.current
         let items = allItems.filter { calendar.component(.year, from: $0.createdTime) == year }
         return YearRecap(year: year, items: items)
+    }
+
+    private func yearSummaryText(_ year: Int, count: Int) -> String {
+        String(localized: "My \(String(year)) in Travelog: \(count) memories across \(countriesInYear(year)) countries ✈️")
     }
 
     private func countriesInYear(_ year: Int) -> Int {

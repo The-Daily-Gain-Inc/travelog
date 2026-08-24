@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import AudioToolbox
 
 /// "Where was this taken?" — a photo from the library and four country
 /// choices. Five rounds per game.
@@ -65,6 +66,9 @@ struct QuizView: View {
                         guard picked == nil else { return }
                         picked = option
                         if option == round.answer { score += 1 }
+                        if UserDefaults.standard.bool(forKey: "quizSounds") {
+                            AudioServicesPlaySystemSound(option == round.answer ? 1054 : 1053)
+                        }
                         Task {
                             try? await Task.sleep(nanoseconds: 1_100_000_000)
                             nextRound()
@@ -130,6 +134,23 @@ struct QuizView: View {
             }
             .buttonStyle(.borderedProminent)
             .padding(.top, 12)
+
+            if let lastAnswer = rounds.last?.answer,
+               let album = albums.first(where: { $0.name == lastAnswer }) {
+                Button {
+                    TourController.shared.focusAlbumId = album.driveId
+                    dismiss()
+                } label: {
+                    Label("Reveal Last Answer on Map", systemImage: "globe.europe.africa")
+                }
+                .padding(.top, 4)
+            }
+
+            Toggle("Sound effects", isOn: Binding(
+                get: { UserDefaults.standard.bool(forKey: "quizSounds") },
+                set: { UserDefaults.standard.set($0, forKey: "quizSounds") }
+            ))
+            .frame(maxWidth: 240)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

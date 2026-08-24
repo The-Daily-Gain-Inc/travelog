@@ -23,6 +23,7 @@ struct SettingsView: View {
     @AppStorage("showClock") private var showClock = false
     @AppStorage("tourSpeed") private var tourSpeed = 1.0
     @AppStorage("clusterDensity") private var clusterDensity = 12.0
+    @AppStorage("dimInFrame") private var dimInFrame = false
     @State private var exportURL: URL?
     @State private var csvURL: URL?
     @State private var showRestorePicker = false
@@ -146,6 +147,7 @@ struct SettingsView: View {
                 Section {
                     Toggle("Photo Frame mode", isOn: $ambientMode)
                     Toggle("Clock overlay in slideshows", isOn: $showClock)
+                    Toggle("Dim screen while framing", isOn: $dimInFrame)
                     if ambientMode {
                         Picker("Start after", selection: $ambientDelayMinutes) {
                             Text("1 minute").tag(1.0)

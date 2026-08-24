@@ -1106,6 +1106,7 @@ struct VisitedCountriesSheet: View {
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 14) {
                     ForEach(entries.sorted { $0.album.name < $1.album.name }, id: \.feature.id) { entry in
+                        let maxCount = entries.map(\.album.items.count).max() ?? 1
                         Button {
                             onSelect(entry.album)
                         } label: {
@@ -1118,6 +1119,9 @@ struct VisitedCountriesSheet: View {
                                 Text("\(entry.album.items.count) photos")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
+                                ProgressView(value: Double(entry.album.items.count), total: Double(maxCount))
+                                    .tint(Color.appAccent)
+                                    .padding(.horizontal, 24)
                             }
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 18)

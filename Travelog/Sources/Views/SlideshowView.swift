@@ -56,7 +56,9 @@ struct SlideshowView: View {
     @AppStorage("showClock") private var showClock = false
     @AppStorage("loopSlideshow") private var loopSlideshow = true
     @AppStorage("newestFirst") private var newestFirst = false
+    @AppStorage("dimInFrame") private var dimInFrame = false
     @State private var photoRotation: Angle = .zero
+    @State private var savedBrightness: CGFloat?
     @State private var shuffleSeed = UInt64.random(in: 1...UInt64.max)
     @State private var advanceTask: Task<Void, Never>?
     @State private var hideControlsTask: Task<Void, Never>?
@@ -245,7 +247,12 @@ struct SlideshowView: View {
             }
         )
         .task {
-            let start = startItem.flatMap { s in items.firstIndex { $0.driveId == s.driveId } } ?? 0
+            var start = startItem.flatMap { s in items.firstIndex { $0.driveId == s.driveId } } ?? 0
+            if startItem == nil, !forceShuffle {
+                // Resume where this show was left off last time.
+                let saved = UserDefaults.standard.integer(forKey: "resume-\(title)")
+                if saved > 0, saved < items.count { start = saved }
+            }
             await show(index: start)
         }
         .task {
@@ -266,9 +273,16 @@ struct SlideshowView: View {
             return .handled
         }
         .onChange(of: muteVideos) { player?.isMuted = muteVideos }
-        .onAppear { UIApplication.shared.isIdleTimerDisabled = true }
+        .onAppear {
+            UIApplication.shared.isIdleTimerDisabled = true
+            if dimInFrame, UserDefaults.standard.bool(forKey: "ambientMode") {
+                savedBrightness = UIScreen.main.brightness
+                UIScreen.main.brightness = max(UIScreen.main.brightness - 0.35, 0.15)
+            }
+        }
         .onDisappear {
             UIApplication.shared.isIdleTimerDisabled = false
+            if let savedBrightness { UIScreen.main.brightness = savedBrightness }
             advanceTask?.cancel()
             hideControlsTask?.cancel()
             player?.pause()
@@ -415,6 +429,7 @@ struct SlideshowView: View {
                     }
                     Button {
                         currentItem?.isFavorite.toggle()
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                         scheduleControlsAutoHide()
                     } label: {
                         Image(systemName: currentItem?.isFavorite == true ? "heart.fill" : "heart")
@@ -587,6 +602,7 @@ struct SlideshowView: View {
         guard !items.isEmpty else { loadError = true; return }
         index = newIndex
         scrubIndex = Double(newIndex)
+        UserDefaults.standard.set(newIndex, forKey: "resume-\(title)")
         let item = items[newIndex]
         player?.pause()
         player = nil

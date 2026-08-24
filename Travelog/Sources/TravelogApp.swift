@@ -224,10 +224,16 @@ struct MainTabView: View {
         .onReceive(TourController.shared.$focusAlbumId) { id in
             if id != nil { selectedTab = "map" }
         }
+        .onChange(of: selectedTab) {
+            UserDefaults.standard.set(selectedTab, forKey: "lastTab")
+        }
     }
 
-    // Selectable for UI automation via the -initialTab launch argument.
-    @State private var selectedTab = UserDefaults.standard.string(forKey: "initialTab") ?? "slideshow"
+    // Selectable for UI automation via the -initialTab launch argument;
+    // otherwise the last-used tab is restored.
+    @State private var selectedTab = UserDefaults.standard.string(forKey: "initialTab")
+        ?? UserDefaults.standard.string(forKey: "lastTab")
+        ?? "slideshow"
 
     private var content: some View {
         TabView(selection: $selectedTab) {
