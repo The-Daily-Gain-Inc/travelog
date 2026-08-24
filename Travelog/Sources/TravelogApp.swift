@@ -37,9 +37,16 @@ struct RootView: View {
 struct MainTabView: View {
     @AppStorage("demoMode") private var demoMode = false
     @Environment(\.modelContext) private var modelContext
+    @EnvironmentObject private var auth: AuthService
 
     var body: some View {
-        content.task {
+        content.task(id: auth.isSignedIn) {
+            // A real account replaces the demo data entirely.
+            if auth.isSignedIn {
+                demoMode = false
+                try? MockData.purge(from: modelContext)
+                return
+            }
             // Demo mode seeds itself if the sample albums aren't there yet.
             guard demoMode else { return }
             let albums = (try? modelContext.fetch(FetchDescriptor<Album>())) ?? []

@@ -15,6 +15,16 @@ enum MockData {
         ("Morocco", "🇲🇦", 9),
     ]
 
+    /// Deletes all mock albums/items — called once a real account signs in.
+    @MainActor
+    static func purge(from context: ModelContext) throws {
+        let existing = try context.fetch(FetchDescriptor<Album>())
+        let mocks = existing.filter { $0.driveId.hasPrefix(idPrefix) }
+        guard !mocks.isEmpty else { return }
+        for album in mocks { context.delete(album) }
+        try context.save()
+    }
+
     @MainActor
     static func seed(into context: ModelContext) throws {
         // Wipe any previous mock rows, then reseed.
