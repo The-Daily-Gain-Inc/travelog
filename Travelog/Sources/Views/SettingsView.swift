@@ -21,6 +21,8 @@ struct SettingsView: View {
     @AppStorage("sleepTimerMinutes") private var sleepTimerMinutes: Double = 0
     @AppStorage("cacheLimitMB") private var cacheLimitMB: Double = 0
     @AppStorage("showClock") private var showClock = false
+    @AppStorage("tourSpeed") private var tourSpeed = 1.0
+    @AppStorage("clusterDensity") private var clusterDensity = 12.0
     @State private var exportURL: URL?
     @AppStorage("showTripLines") private var showTripLines = true
     @AppStorage("ambientMode") private var ambientMode = false
@@ -151,6 +153,16 @@ struct SettingsView: View {
 
                 Section("Map") {
                     Toggle("Trip lines between photos", isOn: $showTripLines)
+                    Picker("Tour speed", selection: $tourSpeed) {
+                        Text("Relaxed").tag(1.5)
+                        Text("Normal").tag(1.0)
+                        Text("Fast").tag(0.6)
+                    }
+                    Picker("Pin grouping", selection: $clusterDensity) {
+                        Text("Coarse").tag(7.0)
+                        Text("Normal").tag(12.0)
+                        Text("Fine").tag(18.0)
+                    }
                 }
 
                 Section("Appearance") {

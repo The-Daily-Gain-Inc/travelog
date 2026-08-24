@@ -13,6 +13,12 @@ struct StatsView: View {
     @Query private var albums: [Album]
     @State private var showPassport = false
     @State private var showQuiz = false
+    @AppStorage("wishlistIds") private var wishlistIdsRaw = ""
+
+    private var wishlistCountries: [CountryFeature] {
+        let ids = Set(wishlistIdsRaw.split(separator: ",").map(String.init))
+        return WorldGeometry.countries.filter { ids.contains($0.id) }.sorted { $0.name < $1.name }
+    }
     @State private var recap: YearRecap?
 
     private var allItems: [MediaItem] { albums.flatMap(\.items) }
@@ -223,6 +229,28 @@ struct StatsView: View {
                                     .tint(entry.visited > 0 ? Color.appAccent : .gray)
                             }
                             .padding(.vertical, 2)
+                        }
+                    }
+
+                    if !wishlistCountries.isEmpty {
+                        Section("Wishlist") {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 10) {
+                                    ForEach(wishlistCountries) { country in
+                                        VStack(spacing: 4) {
+                                            Text(WorldGeometry.flag(for: country) ?? "🏳️")
+                                                .font(.system(size: 34))
+                                            Text(country.name)
+                                                .font(.caption.bold())
+                                                .lineLimit(1)
+                                        }
+                                        .frame(width: 104)
+                                        .padding(.vertical, 10)
+                                        .background(.yellow.opacity(0.15), in: RoundedRectangle(cornerRadius: 12))
+                                    }
+                                }
+                            }
+                            .padding(.vertical, 4)
                         }
                     }
 

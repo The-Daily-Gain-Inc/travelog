@@ -249,6 +249,13 @@ struct WorldMapView: View {
     @State private var visibleSpan = MKCoordinateSpan(latitudeDelta: 180, longitudeDelta: 360)
     @AppStorage("showTripLines") private var showTripLines = true
     @AppStorage("mapStyleChoice") private var mapStyleChoice = "globe"
+    @AppStorage("tourSpeed") private var tourSpeed = 1.0
+    @AppStorage("clusterDensity") private var clusterDensity = 12.0
+    @AppStorage("wishlistIds") private var wishlistIdsRaw = ""
+
+    private var wishlistIds: Set<String> {
+        Set(wishlistIdsRaw.split(separator: ",").map(String.init))
+    }
 
     private var currentMapStyle: MapStyle {
         switch mapStyleChoice {
@@ -257,6 +264,18 @@ struct WorldMapView: View {
         case "hybrid": .hybrid(elevation: .flat, pointsOfInterest: .excludingAll)
         default: .imagery(elevation: .realistic)
         }
+    }
+
+    /// Rect framing every located photo (used by pin-based modes).
+    private var fitPinsRect: MKMapRect {
+        var rect = MKMapRect.null
+        for item in locatedItems {
+            guard let lat = item.latitude, let lon = item.longitude else { continue }
+            let point = MKMapPoint(CLLocationCoordinate2D(latitude: lat, longitude: lon))
+            rect = rect.union(MKMapRect(x: point.x, y: point.y, width: 1, height: 1))
+        }
+        guard !rect.isNull else { return .world }
+        return rect.insetBy(dx: -rect.width * 0.25 - 200_000, dy: -rect.height * 0.25 - 200_000)
     }
 
     /// Camera rect that frames every visited country, slightly padded.
@@ -283,6 +302,10 @@ struct WorldMapView: View {
     @State private var tourPath: [CLLocationCoordinate2D] = []
     @State private var lastTourCenter: CLLocationCoordinate2D?
     @State private var showVisitedList = false
+    @State private var showCountrySearch = false
+    @State private var tourStop = 0
+    @State private var tourTotal = 0
+    @State private var tourLegKm: Double?
     @State private var mapShareImage: UIImage?
     @State private var buildingShareImage = false
     @State private var tourCard: (album: Album, feature: CountryFeature)?
@@ -341,7 +364,7 @@ struct WorldMapView: View {
     /// Grid-clusters located photos; the cell size follows the visible span so
     /// clusters break apart naturally while zooming in.
     private var photoClusters: [PhotoCluster] {
-        let cell = max(min(visibleSpan.latitudeDelta, visibleSpan.longitudeDelta) / 12, 0.0005)
+        let cell = max(min(visibleSpan.latitudeDelta, visibleSpan.longitudeDelta) / clusterDensity, 0.0005)
         var buckets: [String: [MediaItem]] = [:]
         for item in locatedItems {
             guard let lat = item.latitude, let lon = item.longitude else { continue }
@@ -406,6 +429,20 @@ struct WorldMapView: View {
                         }
                     }
                     if mode == .countries {
+                        // Wishlist countries: dashed-star gray pins.
+                        ForEach(WorldGeometry.countries.filter { wishlistIds.contains($0.id) }) { country in
+                            if let coordinate = WorldGeometry.centroid(of: country) {
+                                Annotation(country.name, coordinate: coordinate) {
+                                    Image(systemName: "star.fill")
+                                        .font(.system(size: 15, weight: .semibold))
+                                        .foregroundStyle(.white)
+                                        .padding(8)
+                                        .background(.gray.opacity(0.85), in: Circle())
+                                        .overlay(Circle().strokeBorder(.white.opacity(0.6),
+                                                                       style: StrokeStyle(lineWidth: 1.5, dash: [4, 3])))
+                                }
+                            }
+                        }
                         ForEach(albumFeatures, id: \.feature.id) { entry in
                             let tint = colorByFeatureId[entry.feature.id] ?? Color.appAccent
                             ForEach(Array(entry.feature.polygons.enumerated()), id: \.offset) { _, polygon in
@@ -452,6 +489,7 @@ struct WorldMapView: View {
                                             .shadow(color: .black.opacity(0.5), radius: 4, y: 2)
                                     } else {
                                         pinLabel(symbol: "photo.on.rectangle.angled", count: cluster.items.count)
+                                            .scaleEffect(min(1 + Double(cluster.items.count) / 30, 1.45))
                                     }
                                 }
                             }
@@ -493,7 +531,8 @@ struct WorldMapView: View {
             }
             .overlay(alignment: .center) {
                 if let card = tourCard {
-                    TourNarrationCard(album: card.album, feature: card.feature)
+                    TourNarrationCard(album: card.album, feature: card.feature,
+                                      stop: tourStop, total: tourTotal, legKm: tourLegKm)
                         .transition(.opacity.combined(with: .scale(scale: 0.9)))
                         .allowsHitTesting(false)
                 }
@@ -523,7 +562,20 @@ struct WorldMapView: View {
                 .padding(20)
             }
             .overlay(alignment: .bottomTrailing) {
-                VStack(spacing: 12) {
+                VStack(alignment: .trailing, spacing: 12) {
+                    if mode == .heat {
+                        HStack(spacing: 8) {
+                            Text("few").font(.caption2)
+                            LinearGradient(colors: [Color.appAccent.opacity(0.2), Color.appAccent],
+                                           startPoint: .leading, endPoint: .trailing)
+                                .frame(width: 90, height: 8)
+                                .clipShape(Capsule())
+                            Text("many").font(.caption2)
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 7)
+                        .background(.ultraThinMaterial, in: Capsule())
+                    }
                     Menu {
                         Picker("Map style", selection: $mapStyleChoice) {
                             Label("3D Globe", systemImage: "globe.americas.fill").tag("globe")
@@ -540,7 +592,9 @@ struct WorldMapView: View {
                     .help(Text("Map style"))
 
                     Button {
-                        withAnimation(.easeInOut(duration: 1.4)) { camera = .rect(fitRect) }
+                        withAnimation(.easeInOut(duration: 1.4)) {
+                            camera = .rect(mode == .countries ? fitRect : fitPinsRect)
+                        }
                     } label: {
                         Image(systemName: "scope")
                             .font(.system(size: 20, weight: .semibold))
@@ -593,6 +647,19 @@ struct WorldMapView: View {
                     closeAtEnd: true
                 )
             }
+            .sheet(isPresented: $showCountrySearch) {
+                CountrySearchSheet(
+                    visited: albumFeatures,
+                    wishlistRaw: $wishlistIdsRaw
+                ) { feature in
+                    showCountrySearch = false
+                    if let center = WorldGeometry.centroid(of: feature) {
+                        withAnimation(.easeInOut(duration: 1.6)) {
+                            camera = .camera(MapCamera(centerCoordinate: center, distance: 2_600_000))
+                        }
+                    }
+                }
+            }
             .sheet(isPresented: $showVisitedList) {
                 VisitedCountriesSheet(entries: albumFeatures) { album in
                     showVisitedList = false
@@ -636,6 +703,11 @@ struct WorldMapView: View {
         guard let hit = clusters.min(by: { distance2($0) < distance2($1) }) else { return }
         let threshold = max(min(visibleSpan.latitudeDelta, visibleSpan.longitudeDelta) * 0.06, 0.02)
         if distance2(hit) < threshold * threshold {
+            if mode == .regions {
+                withAnimation(.easeInOut(duration: 1.2)) {
+                    camera = .camera(MapCamera(centerCoordinate: hit.coordinate, distance: 1_400_000))
+                }
+            }
             selectedCluster = hit
         }
     }
@@ -751,9 +823,12 @@ struct WorldMapView: View {
                 fresh.swapAt(0, fresh.count - 1)
             }
             tourQueue = fresh
+            tourTotal = fresh.count
+            tourStop = 0
         }
         guard !tourQueue.isEmpty else { stopTour(); return }
         let nextId = tourQueue.removeFirst()
+        tourStop += 1
         guard let entry = albumFeatures.first(where: { $0.album.driveId == nextId }),
               let center = WorldGeometry.centroid(of: entry.feature) else {
             stopTour()
@@ -762,13 +837,18 @@ struct WorldMapView: View {
         lastTourAlbumId = entry.album.driveId
         if let previous = lastTourCenter {
             withAnimation { tourPath = [previous, center] }
+            let a = CLLocation(latitude: previous.latitude, longitude: previous.longitude)
+            let b = CLLocation(latitude: center.latitude, longitude: center.longitude)
+            tourLegKm = a.distance(from: b) / 1000
+        } else {
+            tourLegKm = nil
         }
         lastTourCenter = center
         withAnimation { tourCard = entry }
-        withAnimation(.easeInOut(duration: 2.5)) {
+        withAnimation(.easeInOut(duration: 2.5 * tourSpeed)) {
             camera = .camera(MapCamera(centerCoordinate: center, distance: 2_600_000))
         }
-        try? await Task.sleep(nanoseconds: 3_300_000_000)
+        try? await Task.sleep(nanoseconds: UInt64(3_300_000_000 * tourSpeed))
         guard touring, !Task.isCancelled else { return }
         withAnimation { tourCard = nil }
         tourAlbum = entry.album
@@ -790,10 +870,10 @@ struct WorldMapView: View {
             return
         }
         lastTourAlbumId = cluster.id
-        withAnimation(.easeInOut(duration: 2.5)) {
+        withAnimation(.easeInOut(duration: 2.5 * tourSpeed)) {
             camera = .camera(MapCamera(centerCoordinate: cluster.coordinate, distance: 900_000))
         }
-        try? await Task.sleep(nanoseconds: 3_300_000_000)
+        try? await Task.sleep(nanoseconds: UInt64(3_300_000_000 * tourSpeed))
         guard touring, !Task.isCancelled else { return }
         tourCluster = cluster
     }
@@ -817,6 +897,15 @@ struct WorldMapView: View {
                     .foregroundStyle(touring ? .red : Color.appAccent)
             }
             .help(touring ? Text("Stop the world tour") : Text("World tour: fly to a random country and play its photos"))
+
+            Button {
+                showCountrySearch = true
+            } label: {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 17, weight: .semibold))
+                    .frame(width: 30, height: 30)
+            }
+            .help(Text("Find a country / edit wishlist"))
         }
         .padding(6)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
@@ -882,10 +971,86 @@ struct WorldMapView: View {
     }
 }
 
+/// Search every country: fly to visited ones, star unvisited ones onto the
+/// wishlist.
+struct CountrySearchSheet: View {
+    let visited: [(album: Album, feature: CountryFeature)]
+    @Binding var wishlistRaw: String
+    let onFly: (CountryFeature) -> Void
+    @Environment(\.dismiss) private var dismiss
+    @State private var search = ""
+
+    private var wishlist: Set<String> {
+        Set(wishlistRaw.split(separator: ",").map(String.init))
+    }
+
+    private var visitedIds: Set<String> { Set(visited.map(\.feature.id)) }
+
+    private func matches(_ name: String) -> Bool {
+        search.isEmpty || WorldGeometry.normalize(name).contains(WorldGeometry.normalize(search))
+    }
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section("Visited") {
+                    ForEach(visited.filter { matches($0.album.name) }, id: \.feature.id) { entry in
+                        Button {
+                            onFly(entry.feature)
+                        } label: {
+                            HStack {
+                                Text(WorldGeometry.flag(for: entry.feature) ?? "🏳️")
+                                Text(entry.album.name)
+                                Spacer()
+                                Text("\(entry.album.items.count)")
+                                    .foregroundStyle(.secondary)
+                            }
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                Section("Wishlist — tap to star") {
+                    ForEach(WorldGeometry.countries
+                        .filter { !visitedIds.contains($0.id) && matches($0.name) }
+                        .sorted { $0.name < $1.name }) { country in
+                        Button {
+                            var set = wishlist
+                            if !set.insert(country.id).inserted { set.remove(country.id) }
+                            wishlistRaw = set.sorted().joined(separator: ",")
+                        } label: {
+                            HStack {
+                                Text(WorldGeometry.flag(for: country) ?? "🏳️")
+                                Text(country.name)
+                                Spacer()
+                                Image(systemName: wishlist.contains(country.id) ? "star.fill" : "star")
+                                    .foregroundStyle(wishlist.contains(country.id) ? .yellow : .secondary)
+                            }
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+            .searchable(text: $search, prompt: Text("Search countries"))
+            .navigationTitle(Text("Countries"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { dismiss() } label: { Image(systemName: "xmark.circle.fill") }
+                }
+            }
+        }
+    }
+}
+
 /// Overlay shown while the World Tour flies toward a country.
 struct TourNarrationCard: View {
     let album: Album
     let feature: CountryFeature
+    var stop = 0
+    var total = 0
+    var legKm: Double?
 
     private var dateRange: String? {
         let dates = album.items.map(\.createdTime)
@@ -909,6 +1074,17 @@ struct TourNarrationCard: View {
             Text("\(album.items.count) memories")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
+            if stop > 0, total > 0 {
+                HStack(spacing: 10) {
+                    Text("Stop \(stop) of \(total)")
+                    if let legKm, legKm >= 1 {
+                        Label("\(Int(legKm.rounded()).formatted()) km", systemImage: "airplane")
+                    }
+                }
+                .font(.footnote.bold())
+                .foregroundStyle(.secondary)
+                .padding(.top, 4)
+            }
         }
         .padding(.horizontal, 40)
         .padding(.vertical, 28)
