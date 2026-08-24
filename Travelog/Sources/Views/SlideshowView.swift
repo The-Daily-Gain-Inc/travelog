@@ -417,8 +417,11 @@ struct SlideshowView: View {
                 Spacer()
                 HStack(spacing: 36) {
                     controlButton("backward.end.fill", size: 26) { advance(by: -1) }
+                        .accessibilityLabel(Text("Previous photo"))
                     controlButton(isPlaying ? "pause.circle.fill" : "play.circle.fill", size: 56) { togglePlay() }
+                        .accessibilityLabel(isPlaying ? Text("Pause") : Text("Play"))
                     controlButton("forward.end.fill", size: 26) { advance(by: 1) }
+                        .accessibilityLabel(Text("Next photo"))
                 }
                 Spacer()
                 HStack(spacing: 20) {

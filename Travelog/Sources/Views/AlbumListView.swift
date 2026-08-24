@@ -64,6 +64,22 @@ struct AlbumListView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
+                if let error = sync.lastError {
+                    HStack(spacing: 10) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                        Text(error).lineLimit(2)
+                        Spacer()
+                        Button("Retry") {
+                            Task { await sync.sync(rootFolderName: rootFolderName, context: modelContext) }
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+                    .font(.subheadline)
+                    .padding(14)
+                    .background(.red.opacity(0.12), in: RoundedRectangle(cornerRadius: 14))
+                    .padding(.horizontal, 20)
+                    .padding(.top, 8)
+                }
                 if albums.isEmpty {
                     ContentUnavailableView(
                         "No Albums Yet",
@@ -71,6 +87,16 @@ struct AlbumListView: View {
                         description: Text("Sync your Google Drive from Settings to load your albums.")
                     )
                     .padding(.top, 120)
+                    if auth.isSignedIn {
+                        Button {
+                            Task { await sync.sync(rootFolderName: rootFolderName, context: modelContext) }
+                        } label: {
+                            Label("Synchronize Now", systemImage: "arrow.triangle.2.circlepath")
+                                .font(.headline)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .disabled(sync.isSyncing)
+                    }
                 } else {
                     if !onThisDay.isEmpty {
                         VStack(alignment: .leading, spacing: 10) {
@@ -249,6 +275,7 @@ struct AlbumCard: View {
     let album: Album
     var downloadProgress: Double?
     @State private var cover: UIImage?
+    @State private var fullyCached = false
 
     private var coverItem: MediaItem? {
         if let chosen = album.coverDriveId,
@@ -284,6 +311,18 @@ struct AlbumCard: View {
                         }
                         Spacer()
                     }
+                } else if fullyCached {
+                    VStack {
+                        HStack {
+                            Spacer()
+                            Image(systemName: "checkmark.icloud.fill")
+                                .foregroundStyle(.white)
+                                .shadow(radius: 3)
+                                .padding(10)
+                                .accessibilityLabel(Text("Available offline"))
+                        }
+                        Spacer()
+                    }
                 }
             }
             .frame(height: 190)
@@ -310,6 +349,17 @@ struct AlbumCard: View {
         .task(id: coverItem?.driveId) {
             guard cover == nil, let item = coverItem else { return }
             cover = try? await MediaCache.shared.thumbnail(for: (item.driveId, item.name))
+        }
+        .task(id: downloadProgress == nil) {
+            guard !album.items.isEmpty else { return }
+            var cached = true
+            for item in album.items {
+                if await !MediaCache.shared.isCached((item.driveId, item.name)) {
+                    cached = false
+                    break
+                }
+            }
+            fullyCached = cached
         }
     }
 }

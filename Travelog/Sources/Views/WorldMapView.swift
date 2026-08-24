@@ -590,6 +590,7 @@ struct WorldMapView: View {
                             .background(.ultraThinMaterial, in: Circle())
                     }
                     .help(Text("Map style"))
+                    .accessibilityLabel(Text("Map style"))
 
                     Button {
                         withAnimation(.easeInOut(duration: 1.4)) {
@@ -602,6 +603,7 @@ struct WorldMapView: View {
                             .background(.ultraThinMaterial, in: Circle())
                     }
                     .help(Text("Frame all my travels"))
+                    .accessibilityLabel(Text("Frame all my travels"))
 
                     if let shareImage = mapShareImage {
                         ShareLink(

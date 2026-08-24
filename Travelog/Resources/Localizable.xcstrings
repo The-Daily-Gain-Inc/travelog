@@ -1,0 +1,60 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "Albums" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Albums" } } }
+    },
+    "Photos" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Photos" } } }
+    },
+    "World Map" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Carte du monde" } } }
+    },
+    "Trips" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Voyages" } } }
+    },
+    "Stats" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Statistiques" } } }
+    },
+    "Settings" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Réglages" } } }
+    },
+    "Favorites" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Favoris" } } }
+    },
+    "Surprise Me" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Surprends-moi" } } }
+    },
+    "On This Day" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ce jour-là" } } }
+    },
+    "Slideshow" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Diaporama" } } }
+    },
+    "Countries" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Pays" } } }
+    },
+    "Regions" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Régions" } } }
+    },
+    "Heat" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Densité" } } }
+    },
+    "All years" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Toutes années" } } }
+    },
+    "My Passport" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Mon passeport" } } }
+    },
+    "Where was this?" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Où était-ce ?" } } }
+    },
+    "Recent Memories" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Souvenirs récents" } } }
+    },
+    "Highlights" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Moments forts" } } }
+    }
+  },
+  "version" : "1.0"
+}

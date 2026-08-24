@@ -49,7 +49,17 @@ struct TravelogApp: App {
     static let refreshTaskId = "ca.thedailygain.Travelog.refresh"
 
     static let container: ModelContainer = {
-        try! ModelContainer(for: Album.self, MediaItem.self)
+        do {
+            return try ModelContainer(for: Album.self, MediaItem.self)
+        } catch {
+            // Schema drift or a corrupt store: wipe and start fresh rather
+            // than crash-looping — the library re-syncs from Drive.
+            let stores = URL.applicationSupportDirectory
+            for name in ["default.store", "default.store-shm", "default.store-wal"] {
+                try? FileManager.default.removeItem(at: stores.appendingPathComponent(name))
+            }
+            return try! ModelContainer(for: Album.self, MediaItem.self)
+        }
     }()
 
     init() {
@@ -195,6 +205,10 @@ struct MainTabView: View {
                 demoMode = false
                 try? MockData.purge(from: modelContext)
                 await sync.sync(rootFolderName: rootFolderName, context: modelContext)
+                if UserDefaults.standard.bool(forKey: "prewarmThumbnails") {
+                    let albums = (try? modelContext.fetch(FetchDescriptor<Album>())) ?? []
+                    DownloadManager.shared.prewarmThumbnails(albums: albums)
+                }
                 return
             }
             // Demo mode seeds itself if the sample albums are missing or

@@ -24,6 +24,9 @@ struct SettingsView: View {
     @AppStorage("tourSpeed") private var tourSpeed = 1.0
     @AppStorage("clusterDensity") private var clusterDensity = 12.0
     @AppStorage("dimInFrame") private var dimInFrame = false
+    @AppStorage("wifiOnlyDownloads") private var wifiOnlyDownloads = false
+    @AppStorage("prewarmThumbnails") private var prewarmThumbnails = false
+    @State private var confirmClearFavorites = false
     @State private var exportURL: URL?
     @State private var csvURL: URL?
     @State private var showRestorePicker = false
@@ -209,6 +212,17 @@ struct SettingsView: View {
                     LabeledContent("Albums", value: "\(albums.count)")
                     LabeledContent("Media items", value: "\(albums.reduce(0) { $0 + $1.items.count })")
                     LabeledContent("Cache size", value: ByteCountFormatter.string(fromByteCount: cacheSize, countStyle: .file))
+                    Toggle("Download over Wi-Fi only", isOn: $wifiOnlyDownloads)
+                    Toggle("Prewarm thumbnails after sync", isOn: $prewarmThumbnails)
+                    Button("Clear All Favorites", role: .destructive) {
+                        confirmClearFavorites = true
+                    }
+                    .confirmationDialog(Text("Remove the favorite flag from every photo?"),
+                                        isPresented: $confirmClearFavorites, titleVisibility: .visible) {
+                        Button("Clear Favorites", role: .destructive) {
+                            albums.flatMap(\.items).forEach { $0.isFavorite = false }
+                        }
+                    }
                     Picker("Cache limit", selection: $cacheLimitMB) {
                         Text("Unlimited").tag(0.0)
                         Text("500 MB").tag(500.0)
@@ -266,6 +280,21 @@ struct SettingsView: View {
                                    value: "\(albums.count) · \(albums.reduce(0) { $0 + $1.items.count })")
                     if let last = albums.map(\.lastSynced).max() {
                         LabeledContent("Last sync", value: last.formatted(date: .abbreviated, time: .shortened))
+                    }
+                    Button {
+                        let info: [String: Any] = [
+                            "version": appVersion,
+                            "albums": albums.count,
+                            "items": albums.reduce(0) { $0 + $1.items.count },
+                            "cacheBytes": cacheSize,
+                            "device": UIDevice.current.model,
+                            "system": UIDevice.current.systemVersion,
+                        ]
+                        if let data = try? JSONSerialization.data(withJSONObject: info, options: [.prettyPrinted, .sortedKeys]) {
+                            UIPasteboard.general.string = String(data: data, encoding: .utf8)
+                        }
+                    } label: {
+                        Label("Copy Diagnostics", systemImage: "doc.on.clipboard")
                     }
                     Button("Reset All Preferences", role: .destructive) {
                         if let domain = Bundle.main.bundleIdentifier {

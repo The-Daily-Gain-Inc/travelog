@@ -20,6 +20,8 @@
 		7E1CD0AC9FFA253F67855A35 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FD609349D423ABB732FBC787 /* Assets.xcassets */; };
 		81471E846B6C456C9FDF6B56 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C604B71AD0C4A168DE843BA /* AuthService.swift */; };
 		838972386D8A315A160862B2 /* MockData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A4474FA291C56EAD7E60EB9 /* MockData.swift */; };
+		8912BB91F5546D9BD4E1735F /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D3577C7F5AD58EDB568B7C5 /* NetworkMonitor.swift */; };
+		8C8783B2AFFCBBC85BDC4D6E /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = B08ED756BC32FFDD8EEAA73D /* Localizable.xcstrings */; };
 		8DDE662FACC17D15FF681D7F /* CountryGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7A1B811A4F83AB52DB2E350 /* CountryGridView.swift */; };
 		AA13211FFE807415665DD313 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81D6AD18D5B91CF610242549 /* SettingsView.swift */; };
 		B00ABEAABFB4F76FBB8292F5 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE341503665DAF0B47A0C774 /* LoginView.swift */; };
@@ -43,6 +45,7 @@
 		4C604B71AD0C4A168DE843BA /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		510842D96CF4150DA10A7A79 /* MemoriesNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoriesNotifications.swift; sourceTree = "<group>"; };
 		5458D4926B07CC42E983916A /* Travelog.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Travelog.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		5D3577C7F5AD58EDB568B7C5 /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
 		62459A5F2D7A3C5124E054BC /* MediaCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaCache.swift; sourceTree = "<group>"; };
 		6DA8962B804D9E0A8CE9D7A0 /* TripsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripsView.swift; sourceTree = "<group>"; };
 		7CF68ED9AB810DE8B88C0537 /* StatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsView.swift; sourceTree = "<group>"; };
@@ -53,13 +56,14 @@
 		A7B1A5CD0050DF569CCC6696 /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
 		AACBF1D7CF736764515B0CE0 /* PlaceLookup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceLookup.swift; sourceTree = "<group>"; };
 		AE341503665DAF0B47A0C774 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		B08ED756BC32FFDD8EEAA73D /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		B1CFA1C925C8073D60920192 /* AlbumListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumListView.swift; sourceTree = "<group>"; };
 		B7143A318622759509E0DE20 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		D0DFAEF0E24BB78E28C00F05 /* countries.geo.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = countries.geo.json; sourceTree = "<group>"; };
 		D7A1B811A4F83AB52DB2E350 /* CountryGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountryGridView.swift; sourceTree = "<group>"; };
 		E04C341BB15B58B23C9B276F /* DownloadManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadManager.swift; sourceTree = "<group>"; };
 		FD609349D423ABB732FBC787 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		"TEMP_779E9E02-B2F0-4C44-B429-85D299F77546" /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
+		"TEMP_24870130-13A2-4978-BD36-A00522329C18" /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -114,6 +118,7 @@
 			children = (
 				FD609349D423ABB732FBC787 /* Assets.xcassets */,
 				D0DFAEF0E24BB78E28C00F05 /* countries.geo.json */,
+				B08ED756BC32FFDD8EEAA73D /* Localizable.xcstrings */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -136,6 +141,7 @@
 				62459A5F2D7A3C5124E054BC /* MediaCache.swift */,
 				510842D96CF4150DA10A7A79 /* MemoriesNotifications.swift */,
 				8A4474FA291C56EAD7E60EB9 /* MockData.swift */,
+				5D3577C7F5AD58EDB568B7C5 /* NetworkMonitor.swift */,
 				AACBF1D7CF736764515B0CE0 /* PlaceLookup.swift */,
 				1D3326BBEF11B3B29FE1DEB6 /* SyncService.swift */,
 			);
@@ -161,10 +167,10 @@
 			path = Models;
 			sourceTree = "<group>";
 		};
-		"TEMP_86C33BF3-81E8-4A05-8DCF-B64AB0423F7D" /* travelog */ = {
+		"TEMP_80725504-C9D0-43DB-B939-940CCF4E93DD" /* travelog */ = {
 			isa = PBXGroup;
 			children = (
-				"TEMP_779E9E02-B2F0-4C44-B429-85D299F77546" /* Config.xcconfig */,
+				"TEMP_24870130-13A2-4978-BD36-A00522329C18" /* Config.xcconfig */,
 			);
 			path = travelog;
 			sourceTree = "<group>";
@@ -214,6 +220,7 @@
 			knownRegions = (
 				Base,
 				en,
+				fr,
 			);
 			mainGroup = 7319096A878062345909B8C7;
 			minimizedProjectReferenceProxies = 1;
@@ -236,6 +243,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				7E1CD0AC9FFA253F67855A35 /* Assets.xcassets in Resources */,
+				8C8783B2AFFCBBC85BDC4D6E /* Localizable.xcstrings in Resources */,
 				D2F1DD789A5F81C5293F9DD1 /* countries.geo.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -259,6 +267,7 @@
 				56B4C92DD1D7F11DAE5164A7 /* MemoriesNotifications.swift in Sources */,
 				838972386D8A315A160862B2 /* MockData.swift in Sources */,
 				7815DAA31476EE1FC125B20A /* Models.swift in Sources */,
+				8912BB91F5546D9BD4E1735F /* NetworkMonitor.swift in Sources */,
 				B9BC54A315DB848F601EC56D /* PlaceLookup.swift in Sources */,
 				F35DFD686B1AD91F8B6CC808 /* QuizView.swift in Sources */,
 				AA13211FFE807415665DD313 /* SettingsView.swift in Sources */,
@@ -276,7 +285,7 @@
 /* Begin XCBuildConfiguration section */
 		4C82268EC18626AFEA87046A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_779E9E02-B2F0-4C44-B429-85D299F77546" /* Config.xcconfig */;
+			baseConfigurationReference = "TEMP_24870130-13A2-4978-BD36-A00522329C18" /* Config.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -300,7 +309,7 @@
 		};
 		ADB2DB370A1913EF04317362 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_779E9E02-B2F0-4C44-B429-85D299F77546" /* Config.xcconfig */;
+			baseConfigurationReference = "TEMP_24870130-13A2-4978-BD36-A00522329C18" /* Config.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";

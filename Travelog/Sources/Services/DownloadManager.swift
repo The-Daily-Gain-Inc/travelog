@@ -13,6 +13,17 @@ final class DownloadManager: ObservableObject {
         progress[album.driveId] != nil
     }
 
+    /// Warms grid/filmstrip thumbnails for every item so browsing feels
+    /// instant right after a sync.
+    func prewarmThumbnails(albums: [Album]) {
+        let items = albums.flatMap(\.items).map { (driveId: $0.driveId, name: $0.name) }
+        Task.detached(priority: .utility) {
+            for item in items {
+                _ = try? await MediaCache.shared.thumbnail(for: item)
+            }
+        }
+    }
+
     func download(_ album: Album) {
         guard !isDownloading(album) else { return }
         let albumId = album.driveId

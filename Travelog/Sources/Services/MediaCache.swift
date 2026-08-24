@@ -21,11 +21,27 @@ actor MediaCache {
         dir.appendingPathComponent(id).appendingPathExtension(ext)
     }
 
+    /// Fast check: is this item already on disk?
+    func isCached(_ item: (driveId: String, name: String)) -> Bool {
+        let ext = (item.name as NSString).pathExtension.lowercased()
+        return FileManager.default.fileExists(
+            atPath: localURL(for: item.driveId, ext: ext.isEmpty ? "bin" : ext).path
+        )
+    }
+
     /// Returns a local file URL for the full media item, downloading it if needed.
     func file(for item: (driveId: String, name: String)) async throws -> URL {
         let ext = (item.name as NSString).pathExtension.lowercased()
         let dest = localURL(for: item.driveId, ext: ext.isEmpty ? "bin" : ext)
         if FileManager.default.fileExists(atPath: dest.path) { return dest }
+
+        // Respect the Wi-Fi-only preference for fresh Drive downloads.
+        if UserDefaults.standard.bool(forKey: "wifiOnlyDownloads"),
+           NetworkMonitor.shared.isExpensive,
+           !item.driveId.hasPrefix(MockData.idPrefix),
+           !item.driveId.hasPrefix(LocalLibrary.idPrefix) {
+            throw URLError(.notConnectedToInternet)
+        }
 
         if item.driveId.hasPrefix(MockData.idPrefix) {
             let img = await MainActor.run { MockData.renderImage(for: item.driveId) }
