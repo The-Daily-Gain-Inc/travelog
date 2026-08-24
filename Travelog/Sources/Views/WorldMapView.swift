@@ -41,9 +41,21 @@ enum WorldGeometry {
             }
         }
     }
+
+    /// Center of a country's mainland (largest polygon) — used for map markers.
+    static func centroid(forCountryNamed name: String) -> CLLocationCoordinate2D? {
+        guard let country = countries.first(where: { $0.name.caseInsensitiveCompare(name) == .orderedSame }),
+              let largest = country.polygons.max(by: {
+                  $0.boundingMapRect.width * $0.boundingMapRect.height <
+                  $1.boundingMapRect.width * $1.boundingMapRect.height
+              }) else { return nil }
+        let rect = largest.boundingMapRect
+        return MKMapPoint(x: rect.midX, y: rect.midY).coordinate
+    }
 }
 
-/// World Map tab: countries with albums are highlighted; tapping one opens its photo grid.
+/// World Map tab: a satellite globe where visited countries glow and carry a
+/// tappable marker with the photo count; tapping either opens the photo grid.
 struct WorldMapView: View {
     @Query private var albums: [Album]
     @State private var selectedAlbum: Album?
@@ -52,20 +64,44 @@ struct WorldMapView: View {
         Dictionary(albums.map { ($0.name.lowercased(), $0) }, uniquingKeysWith: { a, _ in a })
     }
 
+    private var visitedCount: Int {
+        albums.filter { WorldGeometry.centroid(forCountryNamed: $0.name) != nil }.count
+    }
+
     var body: some View {
         NavigationStack {
             MapReader { proxy in
                 Map(initialPosition: .rect(.world)) {
                     ForEach(WorldGeometry.countries) { country in
-                        let visited = albumsByCountry[country.name.lowercased()] != nil
-                        ForEach(Array(country.polygons.enumerated()), id: \.offset) { _, polygon in
-                            MapPolygon(polygon)
-                                .foregroundStyle(visited ? .orange.opacity(0.65) : .gray.opacity(0.18))
-                                .stroke(visited ? Color.orange : Color.gray.opacity(0.4), lineWidth: visited ? 1.5 : 0.5)
+                        if albumsByCountry[country.name.lowercased()] != nil {
+                            ForEach(Array(country.polygons.enumerated()), id: \.offset) { _, polygon in
+                                MapPolygon(polygon)
+                                    .foregroundStyle(.orange.opacity(0.35))
+                                    .stroke(.orange.opacity(0.9), lineWidth: 1.5)
+                            }
+                        }
+                    }
+                    ForEach(albums) { album in
+                        if let coordinate = WorldGeometry.centroid(forCountryNamed: album.name) {
+                            Annotation(album.name, coordinate: coordinate) {
+                                Button { selectedAlbum = album } label: {
+                                    VStack(spacing: 2) {
+                                        Image(systemName: "photo.stack.fill")
+                                            .font(.system(size: 15, weight: .semibold))
+                                        Text("\(album.items.count)")
+                                            .font(.caption2.bold())
+                                    }
+                                    .foregroundStyle(.white)
+                                    .padding(.horizontal, 9)
+                                    .padding(.vertical, 6)
+                                    .background(.orange.gradient, in: RoundedRectangle(cornerRadius: 10))
+                                    .shadow(color: .black.opacity(0.5), radius: 4, y: 2)
+                                }
+                            }
                         }
                     }
                 }
-                .mapStyle(.standard(elevation: .flat, pointsOfInterest: .excludingAll))
+                .mapStyle(.imagery(elevation: .realistic))
                 .onTapGesture { screenPoint in
                     guard let coord = proxy.convert(screenPoint, from: .local),
                           let country = WorldGeometry.country(at: coord),
@@ -73,8 +109,18 @@ struct WorldMapView: View {
                     selectedAlbum = album
                 }
             }
+            .ignoresSafeArea(edges: .bottom)
+            .overlay(alignment: .bottomLeading) {
+                Label("\(visitedCount) countries visited", systemImage: "airplane.departure")
+                    .font(.subheadline.bold())
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 9)
+                    .background(.ultraThinMaterial, in: Capsule())
+                    .padding(20)
+            }
             .navigationTitle("World Map")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(.hidden, for: .navigationBar)
             .sheet(item: $selectedAlbum) { album in
                 CountryGridView(album: album)
             }
