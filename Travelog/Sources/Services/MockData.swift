@@ -43,6 +43,15 @@ enum MockData {
                     createdTime: Date(timeIntervalSince1970: 1_600_000_000 + Double(i) * 86_400),
                     sizeBytes: 0
                 )
+                // Deterministic photo spots: a few clusters per country so pin
+                // grouping can be exercised in demo mode.
+                if let center = WorldGeometry.centroid(forCountryNamed: name) {
+                    let clusterOffsets: [(lat: Double, lon: Double)] = [(0, 0), (1.6, 1.2), (-1.3, 1.8)]
+                    let offset = clusterOffsets[i % clusterOffsets.count]
+                    let jitter = Double((i * 37) % 100) / 2_500
+                    item.latitude = center.latitude + offset.lat + jitter
+                    item.longitude = center.longitude + offset.lon + jitter
+                }
                 item.album = album
                 context.insert(item)
             }

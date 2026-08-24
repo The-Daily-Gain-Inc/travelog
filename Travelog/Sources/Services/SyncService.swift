@@ -54,6 +54,8 @@ final class SyncService: ObservableObject {
                     if let item = itemById[file.id] {
                         item.name = file.name
                         item.mimeType = file.mimeType
+                        item.latitude = file.imageMediaMetadata?.location?.latitude
+                        item.longitude = file.imageMediaMetadata?.location?.longitude
                     } else {
                         let item = MediaItem(
                             driveId: file.id,
@@ -62,6 +64,8 @@ final class SyncService: ObservableObject {
                             createdTime: file.createdTime ?? .now,
                             sizeBytes: Int64(file.size ?? "0") ?? 0
                         )
+                        item.latitude = file.imageMediaMetadata?.location?.latitude
+                        item.longitude = file.imageMediaMetadata?.location?.longitude
                         item.album = album
                         context.insert(item)
                     }

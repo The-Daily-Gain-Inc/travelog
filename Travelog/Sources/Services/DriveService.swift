@@ -3,11 +3,19 @@ import Foundation
 /// Thin Google Drive v3 REST client using the signed-in user's OAuth token.
 struct DriveService {
     struct DriveFile: Decodable {
+        struct Location: Decodable {
+            let latitude: Double?
+            let longitude: Double?
+        }
+        struct ImageMeta: Decodable {
+            let location: Location?
+        }
         let id: String
         let name: String
         let mimeType: String
         let createdTime: Date?
         let size: String?
+        let imageMediaMetadata: ImageMeta?
     }
 
     private struct FileList: Decodable {
@@ -30,7 +38,7 @@ struct DriveService {
             var comps = URLComponents(string: "https://www.googleapis.com/drive/v3/files")!
             var items = [
                 URLQueryItem(name: "q", value: q),
-                URLQueryItem(name: "fields", value: "nextPageToken,files(id,name,mimeType,createdTime,size)"),
+                URLQueryItem(name: "fields", value: "nextPageToken,files(id,name,mimeType,createdTime,size,imageMediaMetadata(location))"),
                 URLQueryItem(name: "pageSize", value: "1000"),
                 URLQueryItem(name: "orderBy", value: "name"),
             ]

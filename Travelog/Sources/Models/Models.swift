@@ -24,6 +24,9 @@ final class MediaItem {
     var mimeType: String
     var createdTime: Date
     var sizeBytes: Int64
+    // EXIF GPS position from Drive's image metadata, when the photo has one.
+    var latitude: Double?
+    var longitude: Double?
     var album: Album?
 
     var isVideo: Bool { mimeType.hasPrefix("video/") }
