@@ -11,7 +11,8 @@ final class PlaceLookup {
     private var cache: [String: String] = [:]
     private var pending: [String: Task<String?, Never>] = [:]
 
-    /// Region-level name ("Bavaria", "California", falls back to city/country).
+    /// Region-level name with country flag ("🇩🇪 Bavaria", "🇯🇵 Kyoto").
+    /// Prefers the state/province, then county, then city, then country.
     func region(latitude: Double, longitude: Double) async -> String? {
         let key = String(format: "r|%.1f|%.1f", latitude, longitude)
         if let hit = cache[key] { return hit }
@@ -19,7 +20,15 @@ final class PlaceLookup {
         let task = Task<String?, Never> {
             let location = CLLocation(latitude: latitude, longitude: longitude)
             guard let mark = try? await geocoder.reverseGeocodeLocation(location).first else { return nil }
-            return mark.administrativeArea ?? mark.locality ?? mark.country
+            let name = mark.administrativeArea
+                ?? mark.subAdministrativeArea
+                ?? mark.locality
+                ?? mark.country
+            guard let name else { return nil }
+            if let iso2 = mark.isoCountryCode, let flag = WorldGeometry.flag(iso2: iso2) {
+                return "\(flag) \(name)"
+            }
+            return name
         }
         pending[key] = task
         let result = await task.value

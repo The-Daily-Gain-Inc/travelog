@@ -146,8 +146,11 @@ enum WorldGeometry {
     ]
 
     static func flag(for feature: CountryFeature) -> String? {
-        guard let iso2 = iso3to2[feature.id] else { return nil }
-        let scalars = iso2.unicodeScalars.compactMap { UnicodeScalar(127_397 + $0.value) }
+        iso3to2[feature.id].flatMap { flag(iso2: $0) }
+    }
+
+    static func flag(iso2: String) -> String? {
+        let scalars = iso2.uppercased().unicodeScalars.compactMap { UnicodeScalar(127_397 + $0.value) }
         guard scalars.count == 2 else { return nil }
         return String(String.UnicodeScalarView(scalars))
     }
@@ -596,7 +599,7 @@ struct RegionBadge: View {
 
     var body: some View {
         VStack(spacing: 2) {
-            Text(name ?? "…")
+            Text(name ?? cluster.items.first?.album?.name ?? "…")
                 .font(.caption.bold())
                 .lineLimit(1)
             Text("\(cluster.items.count)")
