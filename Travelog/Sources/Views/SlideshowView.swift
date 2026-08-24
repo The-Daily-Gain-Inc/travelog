@@ -54,6 +54,9 @@ struct SlideshowView: View {
     @AppStorage("videoLimitSeconds") private var videoLimitSeconds: Double = 0
     @AppStorage("sleepTimerMinutes") private var sleepTimerMinutes: Double = 0
     @AppStorage("showClock") private var showClock = false
+    @AppStorage("loopSlideshow") private var loopSlideshow = true
+    @AppStorage("newestFirst") private var newestFirst = false
+    @State private var photoRotation: Angle = .zero
     @State private var shuffleSeed = UInt64.random(in: 1...UInt64.max)
     @State private var advanceTask: Task<Void, Never>?
     @State private var hideControlsTask: Task<Void, Never>?
@@ -69,7 +72,9 @@ struct SlideshowView: View {
     @AppStorage("displayMaxPixel") private var displayMaxPixel: Double = 0
 
     private var items: [MediaItem] {
-        var all = baseItems.filter { !$0.isHidden }.sorted { $0.createdTime < $1.createdTime }
+        var all = baseItems.filter { !$0.isHidden }.sorted {
+            newestFirst ? $0.createdTime > $1.createdTime : $0.createdTime < $1.createdTime
+        }
         if skipLivePhotos {
             // A Live Photo exports as a still + a tiny video sharing the same
             // basename; drop those companions so only real videos play.
@@ -127,6 +132,7 @@ struct SlideshowView: View {
                     .scaleEffect(kenBurnsActive ? 1.09 : 1.0, anchor: kenBurnsAnchor)
                     .animation(kenBurnsActive ? .linear(duration: slideDuration + 1) : nil, value: kenBurnsActive)
                     .scaleEffect(min(max(zoom * pinch, 1), 5))
+                    .rotationEffect(photoRotation)
                     .ignoresSafeArea()
                     .transition(photoTransition)
                     .id(index)
@@ -229,7 +235,13 @@ struct SlideshowView: View {
         .onTapGesture { toggleControls() }
         .gesture(
             DragGesture(minimumDistance: 40).onEnded { value in
-                if value.translation.width < 0 { advance(by: 1) } else { advance(by: -1) }
+                if value.translation.height > 130, abs(value.translation.width) < 90 {
+                    dismiss()
+                } else if value.translation.width < 0 {
+                    advance(by: 1)
+                } else {
+                    advance(by: -1)
+                }
             }
         )
         .task {
@@ -248,6 +260,11 @@ struct SlideshowView: View {
         .onKeyPress(.leftArrow) { advance(by: -1); return .handled }
         .onKeyPress(.rightArrow) { advance(by: 1); return .handled }
         .onKeyPress(.space) { togglePlay(); return .handled }
+        .onKeyPress(.escape) { dismiss(); return .handled }
+        .onKeyPress(KeyEquivalent("f")) {
+            currentItem?.isFavorite.toggle()
+            return .handled
+        }
         .onChange(of: muteVideos) { player?.isMuted = muteVideos }
         .onAppear { UIApplication.shared.isIdleTimerDisabled = true }
         .onDisappear {
@@ -391,6 +408,11 @@ struct SlideshowView: View {
                 }
                 Spacer()
                 HStack(spacing: 20) {
+                    controlButton("rotate.right", size: 20) {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            photoRotation += .degrees(90)
+                        }
+                    }
                     Button {
                         currentItem?.isFavorite.toggle()
                         scheduleControlsAutoHide()
@@ -434,6 +456,8 @@ struct SlideshowView: View {
             Toggle("Skip Live Photo clips", isOn: $skipLivePhotos)
             Toggle("Mute videos", isOn: $muteVideos)
             Toggle("Show clock", isOn: $showClock)
+            Toggle("Loop at end", isOn: $loopSlideshow)
+            Toggle("Newest first", isOn: $newestFirst)
         } label: {
             Label("\(Int(slideDuration)) s", systemImage: "timer")
                 .font(.subheadline.bold())
@@ -444,6 +468,7 @@ struct SlideshowView: View {
         }
         .onChange(of: skipLivePhotos) { advance(to: index) }
         .onChange(of: shuffleSlides) { advance(to: 0) }
+        .onChange(of: newestFirst) { advance(to: 0) }
     }
 
     private func infoPanel(for item: MediaItem) -> some View {
@@ -527,9 +552,16 @@ struct SlideshowView: View {
 
     private func advance(by delta: Int) {
         guard !items.isEmpty else { return }
-        if closeAtEnd, delta > 0, index == items.count - 1 {
-            dismiss()
-            return
+        if delta > 0, index == items.count - 1 {
+            if closeAtEnd {
+                dismiss()
+                return
+            }
+            if !loopSlideshow {
+                isPlaying = false
+                advanceTask?.cancel()
+                return
+            }
         }
         advance(to: (index + delta + items.count) % items.count)
     }
@@ -564,6 +596,7 @@ struct SlideshowView: View {
         loadError = false
         slideStart = nil
         zoom = 1
+        photoRotation = .zero
         currentFileURL = nil
 
         updateCaption(for: item)

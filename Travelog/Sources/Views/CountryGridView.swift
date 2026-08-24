@@ -304,14 +304,25 @@ struct PostcardView: View {
 }
 
 /// Grid thumbnail that opens the slideshow at its photo, with a long-press
-/// menu for favorite/hide.
+/// menu for favorite/hide/copy/save (and optional selection styling).
 struct TappableThumbnail: View {
     let item: MediaItem
+    var onShowAlbum: (() -> Void)? = nil
+    var selected: Bool? = nil
     let onTap: () -> Void
 
     var body: some View {
         Button(action: onTap) {
             MediaThumbnail(item: item)
+                .overlay(alignment: .topTrailing) {
+                    if let selected {
+                        Image(systemName: selected ? "checkmark.circle.fill" : "circle")
+                            .font(.title3)
+                            .foregroundStyle(selected ? Color.appAccent : .white)
+                            .shadow(radius: 3)
+                            .padding(6)
+                    }
+                }
         }
         .buttonStyle(.plain)
         .contextMenu {
@@ -332,6 +343,31 @@ struct TappableThumbnail: View {
                     item.album?.coverDriveId = item.driveId
                 } label: {
                     Label("Set as Album Cover", systemImage: "rectangle.stack.badge.person.crop")
+                }
+                Button {
+                    Task {
+                        if let url = try? await MediaCache.shared.file(for: (item.driveId, item.name)),
+                           let image = UIImage(contentsOfFile: url.path) {
+                            UIPasteboard.general.image = image
+                        }
+                    }
+                } label: {
+                    Label("Copy Photo", systemImage: "doc.on.doc")
+                }
+                Button {
+                    Task {
+                        if let url = try? await MediaCache.shared.file(for: (item.driveId, item.name)),
+                           let image = UIImage(contentsOfFile: url.path) {
+                            UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
+                        }
+                    }
+                } label: {
+                    Label("Save to Photos", systemImage: "square.and.arrow.down")
+                }
+            }
+            if let onShowAlbum {
+                Button(action: onShowAlbum) {
+                    Label("Show in Album", systemImage: "folder")
                 }
             }
         }

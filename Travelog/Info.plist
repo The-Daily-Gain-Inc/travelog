@@ -33,6 +33,8 @@
 	<string>1</string>
 	<key>GIDClientID</key>
 	<string>$(GOOGLE_CLIENT_ID)</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Travelog saves photos you choose to your library.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

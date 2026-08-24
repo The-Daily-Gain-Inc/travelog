@@ -46,6 +46,7 @@ targets:
         UILaunchScreen: {}
         UIRequiresFullScreen: true
         GIDClientID: $(GOOGLE_CLIENT_ID)
+        NSPhotoLibraryAddUsageDescription: Travelog saves photos you choose to your library.
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: true
           UISceneConfigurations:

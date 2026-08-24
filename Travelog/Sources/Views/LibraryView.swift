@@ -10,6 +10,10 @@ struct LibraryView: View {
     @State private var highlight: Highlight?
     @State private var searchText = ""
     @State private var mediaFilter = "all"
+    @State private var selecting = false
+    @State private var selection = Set<String>()
+    @State private var albumToShow: Album?
+    @AppStorage("gridThumbSize") private var gridThumbSize = 118.0
 
     struct Highlight: Identifiable {
         let id: String
@@ -80,7 +84,9 @@ struct LibraryView: View {
         return result
     }
 
-    private let columns = [GridItem(.adaptive(minimum: 118, maximum: 160), spacing: 2)]
+    private var columns: [GridItem] {
+        [GridItem(.adaptive(minimum: gridThumbSize, maximum: gridThumbSize * 1.4), spacing: 2)]
+    }
 
     private var availableYears: [Int] {
         let calendar = Calendar.current
@@ -124,8 +130,20 @@ struct LibraryView: View {
                             Section {
                                 LazyVGrid(columns: columns, spacing: 2) {
                                     ForEach(section.items) { item in
-                                        TappableThumbnail(item: item) { startItem = item }
-                                            .aspectRatio(1, contentMode: .fill)
+                                        TappableThumbnail(
+                                            item: item,
+                                            onShowAlbum: { albumToShow = item.album },
+                                            selected: selecting ? selection.contains(item.driveId) : nil
+                                        ) {
+                                            if selecting {
+                                                if !selection.insert(item.driveId).inserted {
+                                                    selection.remove(item.driveId)
+                                                }
+                                            } else {
+                                                startItem = item
+                                            }
+                                        }
+                                        .aspectRatio(1, contentMode: .fill)
                                     }
                                 }
                             } header: {
@@ -145,7 +163,47 @@ struct LibraryView: View {
             }
             .navigationTitle("Photos")
             .searchable(text: $searchText, prompt: Text("Search photos and countries"))
+            .safeAreaInset(edge: .bottom) {
+                if selecting {
+                    HStack(spacing: 24) {
+                        Text("\(selection.count) selected")
+                            .font(.headline)
+                        Spacer()
+                        Button {
+                            applyToSelection { $0.isFavorite = true }
+                        } label: {
+                            Label("Favorite", systemImage: "heart")
+                        }
+                        Button {
+                            applyToSelection { $0.isHidden = true }
+                        } label: {
+                            Label("Hide", systemImage: "eye.slash")
+                        }
+                        .tint(.red)
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 12)
+                    .background(.ultraThinMaterial)
+                }
+            }
             .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(selecting ? "Done" : "Select") {
+                        selecting.toggle()
+                        if !selecting { selection.removeAll() }
+                    }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        Picker("Thumbnail size", selection: $gridThumbSize) {
+                            Text("Small").tag(90.0)
+                            Text("Medium").tag(118.0)
+                            Text("Large").tag(170.0)
+                        }
+                    } label: {
+                        Label("Thumbnail size", systemImage: "squareshape.split.3x3")
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Picker("Filter", selection: $mediaFilter) {
                         Text("All").tag("all")
@@ -177,8 +235,20 @@ struct LibraryView: View {
             .fullScreenCover(item: $highlight) { highlight in
                 SlideshowView(title: highlight.title, items: highlight.items, forceShuffle: highlight.id == "favs")
             }
+            .sheet(item: $albumToShow) { album in
+                CountryGridView(album: album)
+            }
             }
         }
+    }
+}
+
+extension LibraryView {
+    private func applyToSelection(_ change: (MediaItem) -> Void) {
+        let items = albums.flatMap(\.items).filter { selection.contains($0.driveId) }
+        items.forEach(change)
+        selection.removeAll()
+        selecting = false
     }
 }
 
