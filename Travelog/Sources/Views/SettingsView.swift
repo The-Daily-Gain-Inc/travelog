@@ -24,6 +24,15 @@ struct SettingsView: View {
     @AppStorage("tourSpeed") private var tourSpeed = 1.0
     @AppStorage("clusterDensity") private var clusterDensity = 12.0
     @State private var exportURL: URL?
+    @State private var csvURL: URL?
+    @State private var showRestorePicker = false
+    @State private var restoreResult: String?
+
+    private var appVersion: String {
+        let v = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
+        let b = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"
+        return "\(v) (\(b))"
+    }
     @AppStorage("showTripLines") private var showTripLines = true
     @AppStorage("ambientMode") private var ambientMode = false
     @AppStorage("ambientDelayMinutes") private var ambientDelayMinutes = 5.0
@@ -225,7 +234,40 @@ struct SettingsView: View {
                         Button {
                             exportLibrary()
                         } label: {
-                            Label("Export Library Data", systemImage: "doc.badge.arrow.up")
+                            Label("Export Library Data (JSON)", systemImage: "doc.badge.arrow.up")
+                        }
+                    }
+                    if let csvURL {
+                        ShareLink(item: csvURL) {
+                            Label("Share CSV", systemImage: "tablecells")
+                        }
+                    } else {
+                        Button {
+                            exportCSV()
+                        } label: {
+                            Label("Export CSV", systemImage: "tablecells.badge.ellipsis")
+                        }
+                    }
+                    Button {
+                        showRestorePicker = true
+                    } label: {
+                        Label("Restore Favorites from Export…", systemImage: "arrow.counterclockwise.icloud")
+                    }
+                    if let restoreResult {
+                        Text(restoreResult).font(.footnote).foregroundStyle(.secondary)
+                    }
+                }
+
+                Section("About") {
+                    LabeledContent("Version", value: appVersion)
+                    LabeledContent("Albums · Photos",
+                                   value: "\(albums.count) · \(albums.reduce(0) { $0 + $1.items.count })")
+                    if let last = albums.map(\.lastSynced).max() {
+                        LabeledContent("Last sync", value: last.formatted(date: .abbreviated, time: .shortened))
+                    }
+                    Button("Reset All Preferences", role: .destructive) {
+                        if let domain = Bundle.main.bundleIdentifier {
+                            UserDefaults.standard.removePersistentDomain(forName: domain)
                         }
                     }
                 }
@@ -250,8 +292,58 @@ struct SettingsView: View {
                     Task { await localLibrary.connect(url: url, context: modelContext) }
                 }
             }
+            .fileImporter(isPresented: $showRestorePicker, allowedContentTypes: [.json]) { result in
+                if case .success(let url) = result { restoreFavorites(from: url) }
+            }
             .task { cacheSize = await MediaCache.shared.sizeOnDisk() }
         }
+    }
+
+    /// Spreadsheet-friendly export: one row per item.
+    private func exportCSV() {
+        var rows = ["country,name,date,latitude,longitude,favorite,hidden"]
+        for album in albums {
+            for item in album.items {
+                let lat = item.latitude.map { String(format: "%.5f", $0) } ?? ""
+                let lon = item.longitude.map { String(format: "%.5f", $0) } ?? ""
+                let name = item.name.replacingOccurrences(of: ",", with: " ")
+                rows.append("\(album.name),\(name),\(item.createdTime.ISO8601Format()),\(lat),\(lon),\(item.isFavorite),\(item.isHidden)")
+            }
+        }
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("Travelog-Export.csv")
+        try? rows.joined(separator: "\n").data(using: .utf8)?.write(to: url)
+        csvURL = url
+    }
+
+    /// Re-applies favorite/hidden flags from a previously exported JSON,
+    /// matching items by country + file name.
+    private func restoreFavorites(from url: URL) {
+        guard url.startAccessingSecurityScopedResource() else { return }
+        defer { url.stopAccessingSecurityScopedResource() }
+        guard let data = try? Data(contentsOf: url),
+              let payload = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let albumsJSON = payload["albums"] as? [[String: Any]] else {
+            restoreResult = String(localized: "Couldn’t read that export file.")
+            return
+        }
+        var restored = 0
+        for albumJSON in albumsJSON {
+            guard let country = albumJSON["country"] as? String,
+                  let items = albumJSON["items"] as? [[String: Any]],
+                  let album = albums.first(where: { $0.name == country }) else { continue }
+            for itemJSON in items {
+                guard let name = itemJSON["name"] as? String,
+                      let item = album.items.first(where: { $0.name == name }) else { continue }
+                let favorite = itemJSON["favorite"] as? Bool ?? false
+                let hidden = itemJSON["hidden"] as? Bool ?? false
+                if item.isFavorite != favorite || item.isHidden != hidden {
+                    item.isFavorite = favorite
+                    item.isHidden = hidden
+                    restored += 1
+                }
+            }
+        }
+        restoreResult = String(localized: "Restored flags on \(restored) items.")
     }
 
     /// Writes albums/items metadata (never the media itself) as JSON.

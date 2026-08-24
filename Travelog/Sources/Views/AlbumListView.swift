@@ -34,7 +34,12 @@ struct AlbumListView: View {
         default:
             list.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
         }
-        return list
+        // Pinned albums always float to the front.
+        return list.sorted { $0.isPinned && !$1.isPinned }
+    }
+
+    private var lastSynced: Date? {
+        albums.map(\.lastSynced).max()
     }
 
     private let columns = [GridItem(.adaptive(minimum: 280, maximum: 400), spacing: 20)]
@@ -92,6 +97,12 @@ struct AlbumListView: View {
                             .buttonStyle(.plain)
                             .contextMenu {
                                 Button {
+                                    album.isPinned.toggle()
+                                } label: {
+                                    Label(album.isPinned ? "Unpin" : "Pin to Top",
+                                          systemImage: album.isPinned ? "pin.slash" : "pin")
+                                }
+                                Button {
                                     shuffleAlbum = album
                                 } label: {
                                     Label("Play Shuffled", systemImage: "shuffle")
@@ -111,6 +122,12 @@ struct AlbumListView: View {
                         }
                     }
                     .padding(20)
+                    if let lastSynced, !albums.allSatisfy({ $0.driveId.hasPrefix(MockData.idPrefix) }) {
+                        Text("Updated \(lastSynced.formatted(.relative(presentation: .named)))")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .padding(.bottom, 16)
+                    }
                 }
             }
             .navigationTitle("Albums")
@@ -273,6 +290,11 @@ struct AlbumCard: View {
             .clipped()
 
             HStack {
+                if album.isPinned {
+                    Image(systemName: "pin.fill")
+                        .font(.caption)
+                        .foregroundStyle(Color.appAccent)
+                }
                 Text(album.name)
                     .font(.title3.weight(.semibold))
                 Spacer()

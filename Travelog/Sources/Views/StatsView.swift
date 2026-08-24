@@ -329,6 +329,7 @@ struct StatsView: View {
 struct PassportView: View {
     let albums: [Album]
     @Environment(\.dismiss) private var dismiss
+    @State private var shareImage: UIImage?
 
     private var stamps: [(feature: CountryFeature, name: String, year: Int)] {
         var seen = Set<String>()
@@ -374,11 +375,46 @@ struct PassportView: View {
             .navigationTitle(Text("My Passport"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                if let shareImage {
+                    ToolbarItem(placement: .topBarLeading) {
+                        ShareLink(
+                            item: Image(uiImage: shareImage),
+                            preview: SharePreview(Text("My Passport"), image: Image(uiImage: shareImage))
+                        )
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button { dismiss() } label: { Image(systemName: "xmark.circle.fill") }
                 }
             }
+            .task { renderShareImage() }
         }
+    }
+
+    @MainActor
+    private func renderShareImage() {
+        let grid = LazyVGrid(columns: [GridItem(.adaptive(minimum: 190, maximum: 250), spacing: 22)], spacing: 26) {
+            ForEach(Array(stamps.enumerated()), id: \.element.feature.id) { i, stamp in
+                VStack(spacing: 6) {
+                    Text(WorldGeometry.flag(for: stamp.feature) ?? "🌍").font(.system(size: 44))
+                    Text(stamp.name.uppercased()).font(.system(.subheadline, design: .serif).bold())
+                    Text(verbatim: "★ \(String(stamp.year)) ★").font(.system(.caption, design: .serif))
+                }
+                .foregroundStyle(stampColor(i))
+                .frame(width: 210)
+                .padding(.vertical, 20)
+                .overlay(RoundedRectangle(cornerRadius: 14)
+                    .strokeBorder(stampColor(i), style: StrokeStyle(lineWidth: 2.5, dash: [7, 4])))
+                .rotationEffect(.degrees(Double((i * 7) % 11) - 5))
+                .padding(6)
+            }
+        }
+        .padding(30)
+        .frame(width: 900)
+        .background(Color(red: 0.96, green: 0.94, blue: 0.88))
+        let renderer = ImageRenderer(content: grid)
+        renderer.scale = 2
+        shareImage = renderer.uiImage
     }
 
     private func stampColor(_ index: Int) -> Color {

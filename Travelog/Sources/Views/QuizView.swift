@@ -113,6 +113,9 @@ struct QuizView: View {
                 .font(.system(size: 80))
             Text("\(score) out of \(Self.roundCount)")
                 .font(.largeTitle.bold())
+            Text("Best: \(UserDefaults.standard.integer(forKey: "quizBestScore")) · Games: \(UserDefaults.standard.integer(forKey: "quizGamesPlayed"))")
+                .font(.headline)
+                .foregroundStyle(.secondary)
             Text(score == Self.roundCount
                  ? "Perfect — a true globetrotter!"
                  : score >= 3 ? "Nice — you know your travels." : "Time for a World Tour refresher…")
@@ -157,6 +160,11 @@ struct QuizView: View {
         if current + 1 < rounds.count {
             current += 1
         } else {
+            let defaults = UserDefaults.standard
+            defaults.set(defaults.integer(forKey: "quizGamesPlayed") + 1, forKey: "quizGamesPlayed")
+            if score > defaults.integer(forKey: "quizBestScore") {
+                defaults.set(score, forKey: "quizBestScore")
+            }
             finished = true
         }
     }

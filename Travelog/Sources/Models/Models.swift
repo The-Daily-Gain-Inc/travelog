@@ -9,6 +9,9 @@ final class Album {
     var lastSynced: Date
     /// User-chosen cover photo (driveId of one of the items).
     var coverDriveId: String?
+    var isPinned: Bool = false
+    /// Free-form note shown in the album header.
+    var note: String = ""
     @Relationship(deleteRule: .cascade, inverse: \MediaItem.album)
     var items: [MediaItem] = []
 

@@ -13,13 +13,18 @@ struct CountryGridView: View {
     @State private var postcardMessage = ""
     @State private var showMessagePrompt = false
     @AppStorage("showHiddenItems") private var showHiddenItems = false
+    @State private var sortDescending = false
+    @State private var editingNote = false
+    @State private var noteDraft = ""
 
     private let columns = [GridItem(.adaptive(minimum: 160, maximum: 240), spacing: 4)]
 
     private var items: [MediaItem] {
         album.items
             .filter { showHiddenItems || !$0.isHidden }
-            .sorted { $0.createdTime < $1.createdTime }
+            .sorted {
+                sortDescending ? $0.createdTime > $1.createdTime : $0.createdTime < $1.createdTime
+            }
     }
 
     private var headerStats: some View {
@@ -45,15 +50,43 @@ struct CountryGridView: View {
                 }
             }
             Spacer()
+            Button {
+                sortDescending.toggle()
+            } label: {
+                Label(sortDescending ? "Newest first" : "Oldest first",
+                      systemImage: sortDescending ? "arrow.down" : "arrow.up")
+                    .font(.subheadline.bold())
+            }
+            .buttonStyle(.bordered)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
+    }
+
+    private var noteRow: some View {
+        Button {
+            noteDraft = album.note
+            editingNote = true
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: album.note.isEmpty ? "square.and.pencil" : "note.text")
+                Text(album.note.isEmpty ? String(localized: "Add a note about this trip…") : album.note)
+                    .multilineTextAlignment(.leading)
+                Spacer()
+            }
+            .font(.subheadline)
+            .foregroundStyle(album.note.isEmpty ? .secondary : .primary)
+            .padding(.horizontal, 16)
+            .padding(.bottom, 8)
+        }
+        .buttonStyle(.plain)
     }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 headerStats
+                noteRow
                 if regionGroups.count > 1 {
                     LazyVStack(alignment: .leading, spacing: 12, pinnedViews: [.sectionHeaders]) {
                         ForEach(regionGroups, id: \.name) { group in
@@ -152,6 +185,11 @@ struct CountryGridView: View {
             }
             .task { await buildRegionGroups() }
             .task { await buildPostcard() }
+            .alert(Text("Album note"), isPresented: $editingNote) {
+                TextField(String(localized: "Note"), text: $noteDraft)
+                Button("Save") { album.note = noteDraft }
+                Button("Cancel", role: .cancel) {}
+            }
             .alert(Text("Postcard message"), isPresented: $showMessagePrompt) {
                 TextField(String(localized: "Your message"), text: $postcardMessage)
                 Button("Update Postcard") {
