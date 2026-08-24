@@ -75,8 +75,10 @@ struct SlideshowView: View {
         if let lat = currentItem?.latitude, let lon = currentItem?.longitude {
             return CLLocationCoordinate2D(latitude: lat, longitude: lon)
         }
-        let country = currentItem?.album?.name ?? countryName
-        return country.flatMap { WorldGeometry.centroid(forCountryNamed: $0) }
+        if let album = currentItem?.album, let feature = WorldGeometry.feature(for: album) {
+            return WorldGeometry.centroid(of: feature)
+        }
+        return countryName.flatMap { WorldGeometry.centroid(forCountryNamed: $0) }
     }
 
     var body: some View {

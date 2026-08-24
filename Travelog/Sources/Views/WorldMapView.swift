@@ -42,15 +42,87 @@ enum WorldGeometry {
         }
     }
 
-    /// Center of a country's mainland (largest polygon) — used for map markers.
-    static func centroid(forCountryNamed name: String) -> CLLocationCoordinate2D? {
-        guard let country = countries.first(where: { $0.name.caseInsensitiveCompare(name) == .orderedSame }),
-              let largest = country.polygons.max(by: {
-                  $0.boundingMapRect.width * $0.boundingMapRect.height <
-                  $1.boundingMapRect.width * $1.boundingMapRect.height
-              }) else { return nil }
+    /// Lowercased, diacritic-free, punctuation-free form used for matching.
+    static func normalize(_ s: String) -> String {
+        String(s.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .init(identifier: "en"))
+            .lowercased()
+            .map { $0.isLetter || $0.isNumber ? $0 : " " })
+            .split(separator: " ")
+            .joined(separator: " ")
+    }
+
+    /// Common folder-name variants → canonical GeoJSON names.
+    private static let aliases: [String: String] = [
+        "usa": "United States of America", "us": "United States of America",
+        "united states": "United States of America", "america": "United States of America",
+        "uk": "United Kingdom", "britain": "United Kingdom", "great britain": "United Kingdom",
+        "england": "United Kingdom", "scotland": "United Kingdom", "wales": "United Kingdom",
+        "uae": "United Arab Emirates", "emirates": "United Arab Emirates",
+        "dubai": "United Arab Emirates", "abu dhabi": "United Arab Emirates",
+        "czechia": "Czech Republic",
+        "holland": "Netherlands",
+        "korea": "South Korea",
+        "burma": "Myanmar",
+        "tanzania": "United Republic of Tanzania",
+        "drc": "Democratic Republic of the Congo",
+        "congo": "Republic of the Congo",
+        "north macedonia": "Macedonia",
+        "cote d ivoire": "Ivory Coast", "cote divoire": "Ivory Coast",
+    ]
+
+    private static let byNormalizedName: [String: CountryFeature] =
+        Dictionary(countries.map { (normalize($0.name), $0) }, uniquingKeysWith: { a, _ in a })
+
+    /// Name-based lookup: normalized exact match, then alias table.
+    static func feature(named name: String) -> CountryFeature? {
+        let norm = normalize(name)
+        if let hit = byNormalizedName[norm] { return hit }
+        if let canonical = aliases[norm] { return byNormalizedName[normalize(canonical)] }
+        return nil
+    }
+
+    /// Album → country: matches the album name first; if that fails, falls
+    /// back to where the album's photos were actually taken (majority vote).
+    /// Cached — the GPS fallback does point-in-polygon over every country.
+    private static var albumFeatureCache: [String: String] = [:]
+
+    static func feature(for album: Album) -> CountryFeature? {
+        let cacheKey = "\(album.driveId)|\(album.name)|\(album.items.count)"
+        if let id = albumFeatureCache[cacheKey] {
+            return countries.first { $0.id == id }
+        }
+        var resolved = feature(named: album.name)
+        if resolved == nil {
+            let located = album.items
+                .compactMap { item -> CLLocationCoordinate2D? in
+                    guard let lat = item.latitude, let lon = item.longitude else { return nil }
+                    return CLLocationCoordinate2D(latitude: lat, longitude: lon)
+                }
+                .prefix(25)
+            var votes: [String: Int] = [:]
+            for coord in located {
+                if let hit = country(at: coord) { votes[hit.id, default: 0] += 1 }
+            }
+            if let winner = votes.max(by: { $0.value < $1.value })?.key {
+                resolved = countries.first { $0.id == winner }
+            }
+        }
+        if let resolved { albumFeatureCache[cacheKey] = resolved.id }
+        return resolved
+    }
+
+    static func centroid(of feature: CountryFeature) -> CLLocationCoordinate2D? {
+        guard let largest = feature.polygons.max(by: {
+            $0.boundingMapRect.width * $0.boundingMapRect.height <
+            $1.boundingMapRect.width * $1.boundingMapRect.height
+        }) else { return nil }
         let rect = largest.boundingMapRect
         return MKMapPoint(x: rect.midX, y: rect.midY).coordinate
+    }
+
+    /// Center of a country's mainland (largest polygon) — used for map markers.
+    static func centroid(forCountryNamed name: String) -> CLLocationCoordinate2D? {
+        feature(named: name).flatMap { centroid(of: $0) }
     }
 }
 
@@ -80,12 +152,19 @@ struct WorldMapView: View {
     @State private var visibleSpan = MKCoordinateSpan(latitudeDelta: 180, longitudeDelta: 360)
     @AppStorage("showTripLines") private var showTripLines = true
 
-    private var albumsByCountry: [String: Album] {
-        Dictionary(albums.map { ($0.name.lowercased(), $0) }, uniquingKeysWith: { a, _ in a })
+    /// Resolved country per album (name match, alias, or GPS fallback).
+    private var albumFeatures: [(album: Album, feature: CountryFeature)] {
+        albums.compactMap { album in
+            WorldGeometry.feature(for: album).map { (album, $0) }
+        }
+    }
+
+    private var albumsByFeatureId: [String: Album] {
+        Dictionary(albumFeatures.map { ($0.feature.id, $0.album) }, uniquingKeysWith: { a, _ in a })
     }
 
     private var visitedCount: Int {
-        albums.filter { WorldGeometry.centroid(forCountryNamed: $0.name) != nil }.count
+        Set(albumFeatures.map(\.feature.id)).count
     }
 
     private var locatedItems: [MediaItem] {
@@ -114,20 +193,16 @@ struct WorldMapView: View {
             MapReader { proxy in
                 Map(initialPosition: .rect(.world)) {
                     if mode == .countries {
-                        ForEach(WorldGeometry.countries) { country in
-                            if albumsByCountry[country.name.lowercased()] != nil {
-                                ForEach(Array(country.polygons.enumerated()), id: \.offset) { _, polygon in
-                                    MapPolygon(polygon)
-                                        .foregroundStyle(.orange.opacity(0.35))
-                                        .stroke(.orange.opacity(0.9), lineWidth: 1.5)
-                                }
+                        ForEach(albumFeatures, id: \.feature.id) { entry in
+                            ForEach(Array(entry.feature.polygons.enumerated()), id: \.offset) { _, polygon in
+                                MapPolygon(polygon)
+                                    .foregroundStyle(.orange.opacity(0.35))
+                                    .stroke(.orange.opacity(0.9), lineWidth: 1.5)
                             }
-                        }
-                        ForEach(albums) { album in
-                            if let coordinate = WorldGeometry.centroid(forCountryNamed: album.name) {
-                                Annotation(album.name, coordinate: coordinate) {
-                                    Button { selectedAlbum = album } label: {
-                                        pinLabel(symbol: "photo.stack.fill", count: album.items.count)
+                            if let coordinate = WorldGeometry.centroid(of: entry.feature) {
+                                Annotation(entry.album.name, coordinate: coordinate) {
+                                    Button { selectedAlbum = entry.album } label: {
+                                        pinLabel(symbol: "photo.stack.fill", count: entry.album.items.count)
                                     }
                                 }
                             }
@@ -173,7 +248,7 @@ struct WorldMapView: View {
                     guard mode == .countries,
                           let coord = proxy.convert(screenPoint, from: .local),
                           let country = WorldGeometry.country(at: coord),
-                          let album = albumsByCountry[country.name.lowercased()] else { return }
+                          let album = albumsByFeatureId[country.id] else { return }
                     selectedAlbum = album
                 }
             }

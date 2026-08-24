@@ -12,7 +12,7 @@ struct StatsView: View {
     private var locatedCount: Int { allItems.filter { $0.latitude != nil }.count }
 
     private var countriesVisited: Int {
-        albums.filter { WorldGeometry.centroid(forCountryNamed: $0.name) != nil }.count
+        Set(albums.compactMap { WorldGeometry.feature(for: $0)?.id }).count
     }
 
     private var topAlbum: Album? {
