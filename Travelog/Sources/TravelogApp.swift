@@ -36,15 +36,18 @@ struct RootView: View {
 
 struct MainTabView: View {
     @AppStorage("demoMode") private var demoMode = false
+    @AppStorage("rootFolderName") private var rootFolderName = "Travelog"
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject private var auth: AuthService
+    @EnvironmentObject private var sync: SyncService
 
     var body: some View {
         content.task(id: auth.isSignedIn) {
-            // A real account replaces the demo data entirely.
+            // A real account replaces the demo data entirely and syncs on arrival.
             if auth.isSignedIn {
                 demoMode = false
                 try? MockData.purge(from: modelContext)
+                await sync.sync(rootFolderName: rootFolderName, context: modelContext)
                 return
             }
             // Demo mode seeds itself if the sample albums aren't there yet.

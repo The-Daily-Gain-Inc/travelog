@@ -4,6 +4,7 @@ import SwiftData
 /// Slideshow tab: iPad-friendly grid of album cards; tapping one starts the slideshow.
 struct AlbumListView: View {
     @Query(sort: \Album.name) private var albums: [Album]
+    @EnvironmentObject private var sync: SyncService
     @State private var slideshowAlbum: Album?
 
     private let columns = [GridItem(.adaptive(minimum: 280, maximum: 400), spacing: 20)]
@@ -31,6 +32,18 @@ struct AlbumListView: View {
                 }
             }
             .navigationTitle("Albums")
+            .toolbar {
+                if sync.isSyncing {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        HStack(spacing: 8) {
+                            ProgressView()
+                            Text(sync.progressText ?? String(localized: "Syncing…"))
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            }
             .fullScreenCover(item: $slideshowAlbum) { album in
                 SlideshowView(album: album)
             }
