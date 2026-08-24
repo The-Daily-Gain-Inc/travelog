@@ -23,9 +23,19 @@ struct SlideshowView: View {
 
     @AppStorage("slideDuration") private var slideDuration: Double = 5
     @AppStorage("showsMiniMap") private var showsMiniMap = true
+    @AppStorage("skipLivePhotos") private var skipLivePhotos = true
 
     private var items: [MediaItem] {
-        album.items.sorted { $0.createdTime < $1.createdTime }
+        let all = album.items.sorted { $0.createdTime < $1.createdTime }
+        guard skipLivePhotos else { return all }
+        // A Live Photo exports as a still + a tiny video sharing the same
+        // basename; drop those companions so only real videos play.
+        let photoStems = Set(all.filter { !$0.isVideo }.map { stem($0.name) })
+        return all.filter { !$0.isVideo || !photoStems.contains(stem($0.name)) }
+    }
+
+    private func stem(_ name: String) -> String {
+        (name as NSString).deletingPathExtension.lowercased()
     }
 
     var body: some View {
@@ -153,6 +163,8 @@ struct SlideshowView: View {
                 Text("8 s").tag(8.0)
                 Text("15 s").tag(15.0)
             }
+            Divider()
+            Toggle("Skip Live Photo clips", isOn: $skipLivePhotos)
         } label: {
             Label("\(Int(slideDuration)) s", systemImage: "timer")
                 .font(.subheadline.bold())
@@ -160,6 +172,9 @@ struct SlideshowView: View {
         }
         .onChange(of: slideDuration) {
             if isPlaying, player == nil { scheduleAdvance() }
+        }
+        .onChange(of: skipLivePhotos) {
+            advance(to: index)
         }
     }
 
@@ -219,8 +234,9 @@ struct SlideshowView: View {
     }
 
     private func advance(to newIndex: Int) {
+        let clamped = items.isEmpty ? 0 : min(max(newIndex, 0), items.count - 1)
         advanceTask?.cancel()
-        advanceTask = Task { await show(index: newIndex) }
+        advanceTask = Task { await show(index: clamped) }
         scheduleControlsAutoHide()
     }
 
