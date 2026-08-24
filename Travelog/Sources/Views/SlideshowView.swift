@@ -11,22 +11,22 @@ struct SlideshowView: View {
     let baseItems: [MediaItem]
     let countryName: String?
     let forceShuffle: Bool
-    /// When set, the slideshow dismisses itself after this many seconds —
-    /// used by the map's World Tour to hop between countries.
-    let autoCloseAfter: TimeInterval?
+    /// When true, reaching the end of the last slide dismisses the show
+    /// instead of looping — used by the map's World Tour to hop countries.
+    let closeAtEnd: Bool
 
-    init(album: Album, autoCloseAfter: TimeInterval? = nil) {
+    init(album: Album, closeAtEnd: Bool = false) {
         self.init(title: album.name, items: album.items, countryName: album.name,
-                  autoCloseAfter: autoCloseAfter)
+                  closeAtEnd: closeAtEnd)
     }
 
     init(title: String, items: [MediaItem], countryName: String? = nil,
-         forceShuffle: Bool = false, autoCloseAfter: TimeInterval? = nil) {
+         forceShuffle: Bool = false, closeAtEnd: Bool = false) {
         self.title = title
         self.baseItems = items
         self.countryName = countryName
         self.forceShuffle = forceShuffle
-        self.autoCloseAfter = autoCloseAfter
+        self.closeAtEnd = closeAtEnd
     }
 
     @Environment(\.dismiss) private var dismiss
@@ -141,12 +141,6 @@ struct SlideshowView: View {
             }
         )
         .task { await show(index: 0) }
-        .task {
-            guard let autoCloseAfter else { return }
-            try? await Task.sleep(nanoseconds: UInt64(autoCloseAfter * 1_000_000_000))
-            guard !Task.isCancelled else { return }
-            dismiss()
-        }
         .onAppear { UIApplication.shared.isIdleTimerDisabled = true }
         .onDisappear {
             UIApplication.shared.isIdleTimerDisabled = false
@@ -314,6 +308,10 @@ struct SlideshowView: View {
 
     private func advance(by delta: Int) {
         guard !items.isEmpty else { return }
+        if closeAtEnd, delta > 0, index == items.count - 1 {
+            dismiss()
+            return
+        }
         advance(to: (index + delta + items.count) % items.count)
     }
 

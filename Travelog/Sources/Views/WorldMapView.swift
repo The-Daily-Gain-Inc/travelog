@@ -206,6 +206,7 @@ struct WorldMapView: View {
     @State private var touring = false
     @State private var tourAlbum: Album?
     @State private var lastTourAlbumId: String?
+    @State private var tourQueue: [String] = []
     @State private var tourTask: Task<Void, Never>?
 
     /// Resolved country per album (name match, alias, or GPS fallback).
@@ -344,11 +345,18 @@ struct WorldMapView: View {
                     visibleSpan = context.region.span
                 }
                 .onTapGesture { screenPoint in
-                    guard mode == .countries,
-                          let coord = proxy.convert(screenPoint, from: .local),
-                          let country = WorldGeometry.country(at: coord),
-                          let album = albumsByFeatureId[country.id] else { return }
-                    selectedAlbum = album
+                    guard let coord = proxy.convert(screenPoint, from: .local) else { return }
+                    switch mode {
+                    case .countries:
+                        if let country = WorldGeometry.country(at: coord),
+                           let album = albumsByFeatureId[country.id] {
+                            selectedAlbum = album
+                        }
+                    case .regions:
+                        selectCluster(nearest: coord, in: regionClusters)
+                    case .photos:
+                        selectCluster(nearest: coord, in: photoClusters)
+                    }
                 }
             }
             .ignoresSafeArea(edges: .bottom)
@@ -412,9 +420,27 @@ struct WorldMapView: View {
                 PhotoClusterSheet(cluster: cluster)
             }
             .fullScreenCover(item: $tourAlbum, onDismiss: nextTourLeg) { album in
-                SlideshowView(album: album, autoCloseAfter: slideDuration * 4 + 2)
+                SlideshowView(album: album, closeAtEnd: true)
             }
             .onDisappear { stopTour() }
+        }
+    }
+
+    /// Opens the cluster nearest to a map tap, if it's reasonably close
+    /// (annotation buttons don't receive taps while the map has its own
+    /// tap gesture, so hit-testing happens here).
+    private func selectCluster(nearest coord: CLLocationCoordinate2D, in clusters: [PhotoCluster]) {
+        guard !clusters.isEmpty else { return }
+        let lonScale = max(cos(coord.latitude * .pi / 180), 0.2)
+        func distance2(_ c: PhotoCluster) -> Double {
+            let dLat = c.coordinate.latitude - coord.latitude
+            let dLon = (c.coordinate.longitude - coord.longitude) * lonScale
+            return dLat * dLat + dLon * dLon
+        }
+        guard let hit = clusters.min(by: { distance2($0) < distance2($1) }) else { return }
+        let threshold = max(min(visibleSpan.latitudeDelta, visibleSpan.longitudeDelta) * 0.06, 0.02)
+        if distance2(hit) < threshold * threshold {
+            selectedCluster = hit
         }
     }
 
@@ -423,6 +449,7 @@ struct WorldMapView: View {
     private func startTour() {
         guard !albumFeatures.isEmpty else { return }
         touring = true
+        tourQueue = []
         tourTask = Task { await tourLeg(delay: 0.3) }
     }
 
@@ -444,8 +471,18 @@ struct WorldMapView: View {
     private func tourLeg(delay: TimeInterval) async {
         try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
         guard touring, !Task.isCancelled else { return }
-        let candidates = albumFeatures.filter { $0.album.driveId != lastTourAlbumId }
-        guard let entry = (candidates.isEmpty ? albumFeatures : candidates).randomElement(),
+        // Traverse a shuffled queue so every country plays once before any
+        // repeats; reshuffle avoiding back-to-back duplicates at the seam.
+        if tourQueue.isEmpty {
+            var fresh = albumFeatures.map(\.album.driveId).shuffled()
+            if fresh.count > 1, fresh.first == lastTourAlbumId {
+                fresh.swapAt(0, fresh.count - 1)
+            }
+            tourQueue = fresh
+        }
+        guard !tourQueue.isEmpty else { stopTour(); return }
+        let nextId = tourQueue.removeFirst()
+        guard let entry = albumFeatures.first(where: { $0.album.driveId == nextId }),
               let center = WorldGeometry.centroid(of: entry.feature) else {
             stopTour()
             return
