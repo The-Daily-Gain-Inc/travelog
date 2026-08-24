@@ -9,6 +9,7 @@ struct LibraryView: View {
     @State private var startItem: MediaItem?
     @State private var highlight: Highlight?
     @State private var searchText = ""
+    @State private var mediaFilter = "all"
 
     struct Highlight: Identifiable {
         let id: String
@@ -19,6 +20,13 @@ struct LibraryView: View {
     private var allItems: [MediaItem] {
         albums.flatMap(\.items)
             .filter { showHiddenItems || !$0.isHidden }
+            .filter { item in
+                switch mediaFilter {
+                case "favorites": item.isFavorite
+                case "videos": item.isVideo
+                default: true
+                }
+            }
             .filter { item in
                 searchText.isEmpty
                     || WorldGeometry.normalize(item.name).contains(WorldGeometry.normalize(searchText))
@@ -74,8 +82,14 @@ struct LibraryView: View {
 
     private let columns = [GridItem(.adaptive(minimum: 118, maximum: 160), spacing: 2)]
 
+    private var availableYears: [Int] {
+        let calendar = Calendar.current
+        return Set(allItems.map { calendar.component(.year, from: $0.createdTime) }).sorted(by: >)
+    }
+
     var body: some View {
         NavigationStack {
+            ScrollViewReader { proxy in
             ScrollView {
                 if allItems.isEmpty {
                     ContentUnavailableView(
@@ -122,6 +136,7 @@ struct LibraryView: View {
                                     .background(.ultraThinMaterial, in: Capsule())
                                     .padding(.leading, 8)
                                     .padding(.top, 10)
+                                    .id(section.title)
                             }
                         }
                     }
@@ -130,11 +145,38 @@ struct LibraryView: View {
             }
             .navigationTitle("Photos")
             .searchable(text: $searchText, prompt: Text("Search photos and countries"))
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Picker("Filter", selection: $mediaFilter) {
+                        Text("All").tag("all")
+                        Label("Favorites", systemImage: "heart").tag("favorites")
+                        Label("Videos", systemImage: "video").tag("videos")
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(width: 240)
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        ForEach(availableYears, id: \.self) { year in
+                            Button(String(year)) {
+                                if let target = sections.first(where: {
+                                    Calendar.current.component(.year, from: $0.items.first?.createdTime ?? .now) == year
+                                })?.title {
+                                    withAnimation { proxy.scrollTo(target, anchor: .top) }
+                                }
+                            }
+                        }
+                    } label: {
+                        Label("Jump to year", systemImage: "calendar")
+                    }
+                }
+            }
             .fullScreenCover(item: $startItem) { item in
                 SlideshowView(title: String(localized: "Photos"), items: allItems, startItem: item)
             }
             .fullScreenCover(item: $highlight) { highlight in
                 SlideshowView(title: highlight.title, items: highlight.items, forceShuffle: highlight.id == "favs")
+            }
             }
         }
     }

@@ -234,7 +234,11 @@ struct AlbumCard: View {
     @State private var cover: UIImage?
 
     private var coverItem: MediaItem? {
-        album.items.filter { !$0.isVideo }.min { $0.createdTime < $1.createdTime }
+        if let chosen = album.coverDriveId,
+           let item = album.items.first(where: { $0.driveId == chosen }) {
+            return item
+        }
+        return album.items.filter { !$0.isVideo }.min { $0.createdTime < $1.createdTime }
             ?? album.items.first
     }
 

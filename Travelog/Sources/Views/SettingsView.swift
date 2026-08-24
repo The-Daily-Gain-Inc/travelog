@@ -20,6 +20,7 @@ struct SettingsView: View {
     @AppStorage("videoLimitSeconds") private var videoLimitSeconds: Double = 0
     @AppStorage("sleepTimerMinutes") private var sleepTimerMinutes: Double = 0
     @AppStorage("cacheLimitMB") private var cacheLimitMB: Double = 0
+    @AppStorage("showClock") private var showClock = false
     @State private var exportURL: URL?
     @AppStorage("showTripLines") private var showTripLines = true
     @AppStorage("ambientMode") private var ambientMode = false
@@ -110,6 +111,7 @@ struct SettingsView: View {
                         Text("Fade").tag("fade")
                         Text("Slide").tag("slide")
                         Text("Zoom").tag("zoom")
+                        Text("Flip").tag("flip")
                     }
                     Toggle("Ken Burns effect", isOn: $kenBurns)
                     Toggle("Mute videos", isOn: $muteVideos)
@@ -132,6 +134,7 @@ struct SettingsView: View {
 
                 Section {
                     Toggle("Photo Frame mode", isOn: $ambientMode)
+                    Toggle("Clock overlay in slideshows", isOn: $showClock)
                     if ambientMode {
                         Picker("Start after", selection: $ambientDelayMinutes) {
                             Text("1 minute").tag(1.0)

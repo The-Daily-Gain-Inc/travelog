@@ -7,6 +7,8 @@ final class Album {
     @Attribute(.unique) var driveId: String
     var name: String
     var lastSynced: Date
+    /// User-chosen cover photo (driveId of one of the items).
+    var coverDriveId: String?
     @Relationship(deleteRule: .cascade, inverse: \MediaItem.album)
     var items: [MediaItem] = []
 

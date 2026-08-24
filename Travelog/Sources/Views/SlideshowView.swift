@@ -50,8 +50,10 @@ struct SlideshowView: View {
     @State private var zoom: CGFloat = 1
     @GestureState private var pinch: CGFloat = 1
     @State private var heartBurst = false
+    @State private var currentFileURL: URL?
     @AppStorage("videoLimitSeconds") private var videoLimitSeconds: Double = 0
     @AppStorage("sleepTimerMinutes") private var sleepTimerMinutes: Double = 0
+    @AppStorage("showClock") private var showClock = false
     @State private var shuffleSeed = UInt64.random(in: 1...UInt64.max)
     @State private var advanceTask: Task<Void, Never>?
     @State private var hideControlsTask: Task<Void, Never>?
@@ -104,6 +106,17 @@ struct SlideshowView: View {
         ZStack {
             Color.black.ignoresSafeArea()
 
+            // Blurred fill behind the photo instead of black letterboxing.
+            if player == nil, let image {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+                    .blur(radius: 70)
+                    .opacity(0.55)
+                    .ignoresSafeArea()
+                    .allowsHitTesting(false)
+            }
+
             if let player {
                 VideoPlayer(player: player)
                     .ignoresSafeArea()
@@ -146,6 +159,29 @@ struct SlideshowView: View {
                     }
                 }
                 .transition(.opacity)
+            }
+
+            if showClock {
+                VStack {
+                    HStack {
+                        Spacer()
+                        TimelineView(.periodic(from: .now, by: 30)) { context in
+                            VStack(alignment: .trailing, spacing: 2) {
+                                Text(context.date, style: .time)
+                                    .font(.system(size: 44, weight: .semibold, design: .rounded))
+                                Text(context.date.formatted(.dateTime.weekday(.wide).month(.abbreviated).day()))
+                                    .font(.headline)
+                                    .opacity(0.8)
+                            }
+                            .foregroundStyle(.white)
+                            .shadow(color: .black.opacity(0.55), radius: 6)
+                        }
+                        .padding(.horizontal, 24)
+                        .padding(.top, 96)
+                    }
+                    Spacer()
+                }
+                .allowsHitTesting(false)
             }
 
             if heartBurst {
@@ -231,6 +267,13 @@ struct SlideshowView: View {
             )
         case "zoom":
             .scale(scale: 1.18).combined(with: .opacity)
+        case "flip":
+            .asymmetric(
+                insertion: .modifier(active: FlipEffect(angle: 85), identity: FlipEffect(angle: 0))
+                    .combined(with: .opacity),
+                removal: .modifier(active: FlipEffect(angle: -85), identity: FlipEffect(angle: 0))
+                    .combined(with: .opacity)
+            )
         default:
             .opacity
         }
@@ -304,6 +347,13 @@ struct SlideshowView: View {
                 Image(systemName: showInfo ? "info.circle.fill" : "info.circle")
                     .font(.system(size: 30))
                     .foregroundStyle(.white.opacity(0.85))
+            }
+            if let currentFileURL {
+                ShareLink(item: currentFileURL) {
+                    Image(systemName: "square.and.arrow.up.circle")
+                        .font(.system(size: 30))
+                        .foregroundStyle(.white.opacity(0.85))
+                }
             }
             Spacer()
             Text("\(title) · \(index + 1)/\(items.count)")
@@ -383,6 +433,7 @@ struct SlideshowView: View {
             Toggle("Captions", isOn: $showCaptions)
             Toggle("Skip Live Photo clips", isOn: $skipLivePhotos)
             Toggle("Mute videos", isOn: $muteVideos)
+            Toggle("Show clock", isOn: $showClock)
         } label: {
             Label("\(Int(slideDuration)) s", systemImage: "timer")
                 .font(.subheadline.bold())
@@ -513,6 +564,7 @@ struct SlideshowView: View {
         loadError = false
         slideStart = nil
         zoom = 1
+        currentFileURL = nil
 
         updateCaption(for: item)
 
@@ -522,6 +574,7 @@ struct SlideshowView: View {
                 return
             }
             guard !Task.isCancelled else { return }
+            currentFileURL = url
             let p = AVPlayer(url: url)
             p.isMuted = muteVideos
             player = p
@@ -553,6 +606,7 @@ struct SlideshowView: View {
                 image = loaded
             }
             if kenBurns { kenBurnsActive = true }
+            currentFileURL = try? await MediaCache.shared.file(for: (item.driveId, item.name))
             // Prefetch the next item while this one is on screen.
             if items.count > 1 {
                 let next = items[(newIndex + 1) % items.count]
@@ -573,6 +627,14 @@ struct SlideshowView: View {
                 caption = "\(place) · \(date)"
             }
         }
+    }
+}
+
+/// 3D horizontal-flip used by the "Flip" transition.
+struct FlipEffect: ViewModifier {
+    let angle: Double
+    func body(content: Content) -> some View {
+        content.rotation3DEffect(.degrees(angle), axis: (x: 0, y: 1, z: 0))
     }
 }
 

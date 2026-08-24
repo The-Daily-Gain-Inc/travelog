@@ -10,6 +10,8 @@ struct CountryGridView: View {
     @State private var regionGroups: [(name: String, items: [MediaItem])] = []
     @State private var postcard: UIImage?
     @State private var collage: UIImage?
+    @State private var postcardMessage = ""
+    @State private var showMessagePrompt = false
     @AppStorage("showHiddenItems") private var showHiddenItems = false
 
     private let columns = [GridItem(.adaptive(minimum: 160, maximum: 240), spacing: 4)]
@@ -105,6 +107,11 @@ struct CountryGridView: View {
                                     Label("Share Postcard", systemImage: "envelope")
                                 }
                             }
+                            Button {
+                                showMessagePrompt = true
+                            } label: {
+                                Label("Personalize Postcard…", systemImage: "pencil.line")
+                            }
                             if let collage {
                                 ShareLink(
                                     item: Image(uiImage: collage),
@@ -145,6 +152,15 @@ struct CountryGridView: View {
             }
             .task { await buildRegionGroups() }
             .task { await buildPostcard() }
+            .alert(Text("Postcard message"), isPresented: $showMessagePrompt) {
+                TextField(String(localized: "Your message"), text: $postcardMessage)
+                Button("Update Postcard") {
+                    Task { await buildPostcard() }
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("Written along the bottom of the shared postcard.")
+            }
         }
     }
 
@@ -181,7 +197,8 @@ struct CountryGridView: View {
         }
         guard !thumbs.isEmpty else { return }
         let flag = WorldGeometry.feature(for: album).flatMap { WorldGeometry.flag(for: $0) } ?? "🌍"
-        let view = PostcardView(countryName: album.name, flag: flag, photos: thumbs)
+        let view = PostcardView(countryName: album.name, flag: flag, photos: thumbs,
+                                message: postcardMessage)
         let renderer = ImageRenderer(content: view)
         renderer.scale = 2
         postcard = renderer.uiImage
@@ -231,6 +248,7 @@ struct PostcardView: View {
     let countryName: String
     let flag: String
     let photos: [UIImage]
+    var message: String = ""
 
     var body: some View {
         VStack(spacing: 18) {
@@ -253,10 +271,11 @@ struct PostcardView: View {
             }
             HStack {
                 Spacer()
-                Text("— with love, from my Travelog")
+                Text(message.isEmpty ? String(localized: "— with love, from my Travelog") : message)
                     .font(.system(size: 20, weight: .medium, design: .serif))
                     .italic()
                     .foregroundStyle(.white.opacity(0.85))
+                    .lineLimit(2)
             }
         }
         .padding(36)
@@ -307,6 +326,13 @@ struct TappableThumbnail: View {
             } label: {
                 Label(item.isHidden ? "Unhide" : "Hide",
                       systemImage: item.isHidden ? "eye" : "eye.slash")
+            }
+            if !item.isVideo {
+                Button {
+                    item.album?.coverDriveId = item.driveId
+                } label: {
+                    Label("Set as Album Cover", systemImage: "rectangle.stack.badge.person.crop")
+                }
             }
         }
     }

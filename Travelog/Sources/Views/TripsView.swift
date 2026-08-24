@@ -48,6 +48,13 @@ struct Trip: Identifiable {
 struct TripsView: View {
     @Query private var albums: [Album]
     @State private var slideshowTrip: Trip?
+    @State private var selectedYear: Int?
+
+    private var availableYears: [Int] {
+        let calendar = Calendar.current
+        return Set(albums.flatMap(\.items).map { calendar.component(.year, from: $0.createdTime) })
+            .sorted(by: >)
+    }
 
     /// Splits the photo history wherever more than 14 days pass between shots.
     private var trips: [Trip] {
@@ -67,6 +74,10 @@ struct TripsView: View {
         return result
             .filter { !$0.isEmpty }
             .map { Trip(id: "\($0.first!.driveId)-\($0.count)", items: $0) }
+            .filter { trip in
+                guard let selectedYear else { return true }
+                return Calendar.current.component(.year, from: trip.start) == selectedYear
+            }
             .reversed()
     }
 
@@ -93,6 +104,21 @@ struct TripsView: View {
                 }
             }
             .navigationTitle("Trips")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        Picker("Year", selection: $selectedYear) {
+                            Text("All years").tag(Int?.none)
+                            ForEach(availableYears, id: \.self) { year in
+                                Text(String(year)).tag(Int?.some(year))
+                            }
+                        }
+                    } label: {
+                        Label(selectedYear.map(String.init) ?? String(localized: "All years"),
+                              systemImage: "calendar")
+                    }
+                }
+            }
             .fullScreenCover(item: $slideshowTrip) { trip in
                 SlideshowView(title: trip.title, items: trip.items)
             }

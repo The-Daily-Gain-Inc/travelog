@@ -28,10 +28,10 @@ struct StatsView: View {
         albums.max { $0.items.count < $1.items.count }
     }
 
-    /// Kilometers along each trip's chronological route, summed.
-    private var totalDistanceKm: Double {
+    /// Items grouped into trips by >14-day gaps (mirrors the Trips tab).
+    private var tripGroups: [Trip] {
         let sorted = allItems.filter { !$0.isHidden }.sorted { $0.createdTime < $1.createdTime }
-        guard !sorted.isEmpty else { return 0 }
+        guard !sorted.isEmpty else { return [] }
         var groups: [[MediaItem]] = [[]]
         var last: Date?
         for item in sorted {
@@ -39,7 +39,30 @@ struct StatsView: View {
             groups[groups.count - 1].append(item)
             last = item.createdTime
         }
-        return groups.reduce(0) { $0 + Trip(id: "d", items: $1).distanceKm }
+        return groups.filter { !$0.isEmpty }.enumerated().map { Trip(id: "s\($0.offset)", items: $0.element) }
+    }
+
+    private var totalDistanceKm: Double {
+        tripGroups.reduce(0) { $0 + $1.distanceKm }
+    }
+
+    private var longestTripDays: Int {
+        tripGroups.map {
+            (Calendar.current.dateComponents([.day], from: $0.start, to: $0.end).day ?? 0) + 1
+        }.max() ?? 0
+    }
+
+    private var farthestTripKm: Double {
+        tripGroups.map(\.distanceKm).max() ?? 0
+    }
+
+    private var busiestMonth: (name: String, count: Int)? {
+        let calendar = Calendar.current
+        let grouped = Dictionary(grouping: allItems) { item in
+            calendar.date(from: calendar.dateComponents([.year, .month], from: item.createdTime)) ?? .distantPast
+        }
+        guard let best = grouped.max(by: { $0.value.count < $1.value.count }) else { return nil }
+        return (best.key.formatted(.dateTime.month(.wide).year()), best.value.count)
     }
 
     private var firstTrip: Date? { allItems.map(\.createdTime).min() }
@@ -130,6 +153,22 @@ struct StatsView: View {
                     if let firstTrip, let latestTrip {
                         LabeledContent("First memory", value: firstTrip.formatted(.dateTime.month(.wide).year()))
                         LabeledContent("Latest memory", value: latestTrip.formatted(.dateTime.month(.wide).year()))
+                    }
+                }
+
+                if !tripGroups.isEmpty {
+                    Section("Records") {
+                        if longestTripDays > 0 {
+                            LabeledContent("Longest trip", value: "\(longestTripDays) days")
+                        }
+                        if farthestTripKm >= 1 {
+                            LabeledContent("Farthest trip", value: "\(Int(farthestTripKm.rounded()).formatted()) km")
+                        }
+                        if let busiestMonth {
+                            LabeledContent("Busiest month", value: "\(busiestMonth.name) · \(busiestMonth.count) photos")
+                        }
+                        LabeledContent("Trips taken", value: "\(tripGroups.count)")
+                        LabeledContent("Favorites", value: "\(allItems.filter(\.isFavorite).count)")
                     }
                 }
 
