@@ -17,6 +17,8 @@ struct SettingsView: View {
     @AppStorage("ambientDelayMinutes") private var ambientDelayMinutes = 5.0
     @Query private var albums: [Album]
     @State private var cacheSize: Int64 = 0
+    @ObservedObject private var localLibrary = LocalLibrary.shared
+    @State private var showFolderPicker = false
 
     var body: some View {
         NavigationStack {
@@ -54,6 +56,38 @@ struct SettingsView: View {
                     if let error = sync.lastError {
                         Text(error).foregroundStyle(.red).font(.footnote)
                     }
+                }
+
+                Section {
+                    if let name = localLibrary.libraryName {
+                        LabeledContent("Connected folder", value: name)
+                        Button {
+                            Task { await localLibrary.rescan(context: modelContext) }
+                        } label: {
+                            if localLibrary.isScanning {
+                                HStack { ProgressView(); Text("Scanning…") }
+                            } else {
+                                Label("Rescan Drive", systemImage: "arrow.triangle.2.circlepath")
+                            }
+                        }
+                        .disabled(localLibrary.isScanning)
+                        Button("Remove External Albums", role: .destructive) {
+                            localLibrary.remove(context: modelContext)
+                        }
+                    } else {
+                        Button {
+                            showFolderPicker = true
+                        } label: {
+                            Label("Connect USB Drive Folder…", systemImage: "externaldrive.badge.plus")
+                        }
+                    }
+                    if let error = localLibrary.lastError {
+                        Text(error).foregroundStyle(.red).font(.footnote)
+                    }
+                } header: {
+                    Text("External Storage")
+                } footer: {
+                    Text("Pick a folder on a connected SSD or SD card. Each subfolder becomes a country album, alongside your Drive albums. Media plays while the drive is attached (or after it's cached).")
                 }
 
                 Section("Slideshow") {
@@ -116,6 +150,11 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Settings")
+            .fileImporter(isPresented: $showFolderPicker, allowedContentTypes: [.folder]) { result in
+                if case .success(let url) = result {
+                    Task { await localLibrary.connect(url: url, context: modelContext) }
+                }
+            }
             .task { cacheSize = await MediaCache.shared.sizeOnDisk() }
         }
     }

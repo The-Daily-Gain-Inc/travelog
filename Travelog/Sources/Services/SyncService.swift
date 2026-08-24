@@ -26,9 +26,11 @@ final class SyncService: ObservableObject {
             let existing = try context.fetch(FetchDescriptor<Album>())
             var byId = Dictionary(uniqueKeysWithValues: existing.map { ($0.driveId, $0) })
 
-            // Remove albums that no longer exist in Drive — including any leftover mock albums.
+            // Remove albums that no longer exist in Drive — including any
+            // leftover mock albums, but never external-drive imports.
             let liveIds = Set(folders.map(\.id))
-            for album in existing where !liveIds.contains(album.driveId) {
+            for album in existing
+            where !liveIds.contains(album.driveId) && !album.driveId.hasPrefix(LocalLibrary.idPrefix) {
                 context.delete(album)
                 byId[album.driveId] = nil
             }

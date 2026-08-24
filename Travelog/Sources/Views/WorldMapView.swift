@@ -111,6 +111,47 @@ enum WorldGeometry {
         return resolved
     }
 
+    /// ISO alpha-3 (the GeoJSON ids) → alpha-2, for flag emoji.
+    private static let iso3to2: [String: String] = [
+        "AFG": "AF", "AGO": "AO", "ALB": "AL", "ARE": "AE", "ARG": "AR", "ARM": "AM",
+        "ATA": "AQ", "ATF": "TF", "AUS": "AU", "AUT": "AT", "AZE": "AZ", "BDI": "BI",
+        "BEL": "BE", "BEN": "BJ", "BFA": "BF", "BGD": "BD", "BGR": "BG", "BHS": "BS",
+        "BIH": "BA", "BLR": "BY", "BLZ": "BZ", "BMU": "BM", "BOL": "BO", "BRA": "BR",
+        "BRN": "BN", "BTN": "BT", "BWA": "BW", "CAF": "CF", "CAN": "CA", "CHE": "CH",
+        "CHL": "CL", "CHN": "CN", "CIV": "CI", "CMR": "CM", "COD": "CD", "COG": "CG",
+        "COL": "CO", "CRI": "CR", "CS-KM": "XK", "CUB": "CU", "CYP": "CY", "CZE": "CZ",
+        "DEU": "DE", "DJI": "DJ", "DNK": "DK", "DOM": "DO", "DZA": "DZ", "ECU": "EC",
+        "EGY": "EG", "ERI": "ER", "ESH": "EH", "ESP": "ES", "EST": "EE", "ETH": "ET",
+        "FIN": "FI", "FJI": "FJ", "FLK": "FK", "FRA": "FR", "GAB": "GA", "GBR": "GB",
+        "GEO": "GE", "GHA": "GH", "GIN": "GN", "GMB": "GM", "GNB": "GW", "GNQ": "GQ",
+        "GRC": "GR", "GRL": "GL", "GTM": "GT", "GUF": "GF", "GUY": "GY", "HND": "HN",
+        "HRV": "HR", "HTI": "HT", "HUN": "HU", "IDN": "ID", "IND": "IN", "IRL": "IE",
+        "IRN": "IR", "IRQ": "IQ", "ISL": "IS", "ISR": "IL", "ITA": "IT", "JAM": "JM",
+        "JOR": "JO", "JPN": "JP", "KAZ": "KZ", "KEN": "KE", "KGZ": "KG", "KHM": "KH",
+        "KOR": "KR", "KWT": "KW", "LAO": "LA", "LBN": "LB", "LBR": "LR", "LBY": "LY",
+        "LKA": "LK", "LSO": "LS", "LTU": "LT", "LUX": "LU", "LVA": "LV", "MAR": "MA",
+        "MDA": "MD", "MDG": "MG", "MEX": "MX", "MKD": "MK", "MLI": "ML", "MLT": "MT",
+        "MMR": "MM", "MNE": "ME", "MNG": "MN", "MOZ": "MZ", "MRT": "MR", "MWI": "MW",
+        "MYS": "MY", "NAM": "NA", "NCL": "NC", "NER": "NE", "NGA": "NG", "NIC": "NI",
+        "NLD": "NL", "NOR": "NO", "NPL": "NP", "NZL": "NZ", "OMN": "OM", "PAK": "PK",
+        "PAN": "PA", "PER": "PE", "PHL": "PH", "PNG": "PG", "POL": "PL", "PRI": "PR",
+        "PRK": "KP", "PRT": "PT", "PRY": "PY", "PSE": "PS", "QAT": "QA", "ROU": "RO",
+        "RUS": "RU", "RWA": "RW", "SAU": "SA", "SDN": "SD", "SEN": "SN", "SLB": "SB",
+        "SLE": "SL", "SLV": "SV", "SOM": "SO", "SRB": "RS", "SSD": "SS", "SUR": "SR",
+        "SVK": "SK", "SVN": "SI", "SWE": "SE", "SWZ": "SZ", "SYR": "SY", "TCD": "TD",
+        "TGO": "TG", "THA": "TH", "TJK": "TJ", "TKM": "TM", "TLS": "TL", "TTO": "TT",
+        "TUN": "TN", "TUR": "TR", "TWN": "TW", "TZA": "TZ", "UGA": "UG", "UKR": "UA",
+        "URY": "UY", "USA": "US", "UZB": "UZ", "VEN": "VE", "VNM": "VN", "VUT": "VU",
+        "YEM": "YE", "ZAF": "ZA", "ZMB": "ZM", "ZWE": "ZW",
+    ]
+
+    static func flag(for feature: CountryFeature) -> String? {
+        guard let iso2 = iso3to2[feature.id] else { return nil }
+        let scalars = iso2.unicodeScalars.compactMap { UnicodeScalar(127_397 + $0.value) }
+        guard scalars.count == 2 else { return nil }
+        return String(String.UnicodeScalarView(scalars))
+    }
+
     static func centroid(of feature: CountryFeature) -> CLLocationCoordinate2D? {
         guard let largest = feature.polygons.max(by: {
             $0.boundingMapRect.width * $0.boundingMapRect.height <
@@ -167,6 +208,15 @@ struct WorldMapView: View {
         Set(albumFeatures.map(\.feature.id)).count
     }
 
+    /// A stable, well-spread color per visited country (golden-ratio hues).
+    private var colorByFeatureId: [String: Color] {
+        let ids = Set(albumFeatures.map(\.feature.id)).sorted()
+        return Dictionary(uniqueKeysWithValues: ids.enumerated().map { i, id in
+            let hue = (Double(i) * 0.618_033_988_75).truncatingRemainder(dividingBy: 1)
+            return (id, Color(hue: hue, saturation: 0.72, brightness: 0.92))
+        })
+    }
+
     private var locatedItems: [MediaItem] {
         albums.flatMap(\.items).filter { $0.latitude != nil && $0.longitude != nil }
     }
@@ -194,15 +244,20 @@ struct WorldMapView: View {
                 Map(initialPosition: .rect(.world)) {
                     if mode == .countries {
                         ForEach(albumFeatures, id: \.feature.id) { entry in
+                            let tint = colorByFeatureId[entry.feature.id] ?? .orange
                             ForEach(Array(entry.feature.polygons.enumerated()), id: \.offset) { _, polygon in
                                 MapPolygon(polygon)
-                                    .foregroundStyle(.orange.opacity(0.35))
-                                    .stroke(.orange.opacity(0.9), lineWidth: 1.5)
+                                    .foregroundStyle(tint.opacity(0.4))
+                                    .stroke(tint.opacity(0.95), lineWidth: 1.5)
                             }
                             if let coordinate = WorldGeometry.centroid(of: entry.feature) {
                                 Annotation(entry.album.name, coordinate: coordinate) {
                                     Button { selectedAlbum = entry.album } label: {
-                                        pinLabel(symbol: "photo.stack.fill", count: entry.album.items.count)
+                                        pinLabel(
+                                            flag: WorldGeometry.flag(for: entry.feature),
+                                            count: entry.album.items.count,
+                                            tint: tint
+                                        )
                                     }
                                 }
                             }
@@ -292,16 +347,33 @@ struct WorldMapView: View {
     }
 
     private func pinLabel(symbol: String, count: Int) -> some View {
-        VStack(spacing: 2) {
+        pinBody(count: count, tint: .orange) {
             Image(systemName: symbol)
                 .font(.system(size: 15, weight: .semibold))
+        }
+    }
+
+    private func pinLabel(flag: String?, count: Int, tint: Color) -> some View {
+        pinBody(count: count, tint: tint) {
+            if let flag {
+                Text(flag).font(.system(size: 22))
+            } else {
+                Image(systemName: "photo.stack.fill")
+                    .font(.system(size: 15, weight: .semibold))
+            }
+        }
+    }
+
+    private func pinBody(count: Int, tint: Color, @ViewBuilder icon: () -> some View) -> some View {
+        VStack(spacing: 2) {
+            icon()
             Text("\(count)")
                 .font(.caption2.bold())
         }
         .foregroundStyle(.white)
         .padding(.horizontal, 9)
         .padding(.vertical, 6)
-        .background(.orange.gradient, in: RoundedRectangle(cornerRadius: 10))
+        .background(tint.gradient, in: RoundedRectangle(cornerRadius: 10))
         .shadow(color: .black.opacity(0.5), radius: 4, y: 2)
     }
 }

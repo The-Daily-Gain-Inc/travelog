@@ -33,6 +33,12 @@ actor MediaCache {
             return dest
         }
 
+        if item.driveId.hasPrefix(LocalLibrary.idPrefix) {
+            let copied = await MainActor.run { LocalLibrary.shared.copyFile(driveId: item.driveId, to: dest) }
+            guard copied else { throw URLError(.fileDoesNotExist) }
+            return dest
+        }
+
         if let existing = inFlight[item.driveId] { return try await existing.value }
         let task = Task<URL, Error> {
             let token = try await AuthService.shared.accessToken()
