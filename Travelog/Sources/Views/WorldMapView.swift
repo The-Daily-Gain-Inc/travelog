@@ -527,6 +527,7 @@ struct WorldMapView: View {
                         yearChips
                     }
                 }
+                .padding(.horizontal, 12)
                 .padding(.top, 8)
             }
             .overlay(alignment: .center) {
@@ -888,7 +889,7 @@ struct WorldMapView: View {
                 }
             }
             .pickerStyle(.segmented)
-            .frame(width: 420)
+            .frame(maxWidth: 420)
 
             Button {
                 touring ? stopTour() : startTour()
@@ -924,6 +925,7 @@ struct WorldMapView: View {
             .padding(.horizontal, 12)
         }
         .frame(maxWidth: 480)
+        .fixedSize(horizontal: false, vertical: true)
         .padding(.vertical, 5)
         .background(.ultraThinMaterial, in: Capsule())
     }

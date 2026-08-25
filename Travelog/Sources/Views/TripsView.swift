@@ -128,43 +128,59 @@ struct TripsView: View {
 
 struct TripCard: View {
     let trip: Trip
+    @Environment(\.horizontalSizeClass) private var hSize
     @State private var thumbs: [UIImage] = []
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            HStack(alignment: .top, spacing: 0) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(trip.title)
-                        .font(.title2.bold())
-                    Text(trip.countries.joined(separator: " · "))
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(2)
-                    Label("\(trip.items.count) memories", systemImage: "photo.stack")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                    if trip.distanceKm >= 1 {
-                        Label("\(Int(trip.distanceKm.rounded())) km", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                    Spacer(minLength: 0)
-                    HStack(spacing: 6) {
-                        ForEach(Array(thumbs.enumerated()), id: \.offset) { _, img in
-                            Image(uiImage: img)
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 72, height: 72)
-                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                        }
-                    }
+    private var details: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(trip.title)
+                .font(.title2.bold())
+            Text(trip.countries.joined(separator: " · "))
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .lineLimit(2)
+            Label("\(trip.items.count) memories", systemImage: "photo.stack")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            if trip.distanceKm >= 1 {
+                Label("\(Int(trip.distanceKm.rounded())) km", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer(minLength: 0)
+            HStack(spacing: 6) {
+                ForEach(Array(thumbs.enumerated()), id: \.offset) { _, img in
+                    Image(uiImage: img)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 64, height: 64)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
-                .padding(18)
-                Spacer(minLength: 0)
-                tripMap
-                    .frame(width: 280, height: 190)
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
-                    .padding(12)
+            }
+        }
+        .padding(18)
+    }
+
+    var body: some View {
+        Group {
+            if hSize == .compact {
+                // iPhone: route map banner on top, details below.
+                VStack(alignment: .leading, spacing: 0) {
+                    tripMap
+                        .frame(height: 150)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                        .padding(12)
+                    details
+                }
+            } else {
+                HStack(alignment: .top, spacing: 0) {
+                    details
+                    Spacer(minLength: 0)
+                    tripMap
+                        .frame(width: 280, height: 190)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                        .padding(12)
+                }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
