@@ -10,8 +10,14 @@ final class AuthService: ObservableObject {
     @Published var isRestoring = true
 
     static let driveScope = "https://www.googleapis.com/auth/drive.readonly"
-    /// Pre-selects the Travelog sync account on Google's sign-in sheet.
-    static let accountHint = "travelog.jrs@gmail.com"
+
+    /// Last account that signed in on this device — used only as a sheet
+    /// pre-fill hint. Never shipped in the binary; lives in local defaults.
+    private static let lastAccountKey = "lastSignedInEmail"
+
+    static var accountHint: String? {
+        UserDefaults.standard.string(forKey: lastAccountKey)
+    }
 
     var isSignedIn: Bool { user != nil }
 
@@ -31,11 +37,15 @@ final class AuthService: ObservableObject {
             additionalScopes: [Self.driveScope]
         )
         user = result.user
+        if let email = result.user.profile?.email {
+            UserDefaults.standard.set(email, forKey: Self.lastAccountKey)
+        }
     }
 
     func signOut() {
         GIDSignIn.sharedInstance.signOut()
         user = nil
+        UserDefaults.standard.removeObject(forKey: Self.lastAccountKey)
     }
 
     /// Fresh bearer token for Drive REST calls, refreshing if needed.
