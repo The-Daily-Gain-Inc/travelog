@@ -13,20 +13,39 @@ struct MemoryProvider: TimelineProvider {
     func getSnapshot(in context: Context, completion: @escaping (MemoryEntry) -> Void) {
         completion(context.isPreview ? placeholder(in: context) : current())
     }
+    /// One entry per photo, 20 minutes apart, so the widget shuffles through
+    /// the day's set; then it asks for a fresh timeline.
     func getTimeline(in context: Context, completion: @escaping (Timeline<MemoryEntry>) -> Void) {
-        let midnight = Calendar.current.startOfDay(for: Calendar.current.date(byAdding: .day, value: 1, to: Date()) ?? Date())
-        completion(Timeline(entries: [current()], policy: .after(midnight)))
+        guard let s = WidgetBridge.load(), s.updatedAt > .distantPast else {
+            let midnight = Calendar.current.startOfDay(for: Calendar.current.date(byAdding: .day, value: 1, to: Date()) ?? Date())
+            completion(Timeline(entries: [current()], policy: .after(midnight)))
+            return
+        }
+        let list = s.memories.isEmpty ? [WidgetMemory(caption: s.memoryCaption ?? "", year: s.memoryYear ?? 0,
+                                                       file: s.memoryImageFile ?? "", isOnThisDay: s.isOnThisDay)] : s.memories
+        // Start at a different photo each time the timeline is rebuilt.
+        let offset = Int(Date().timeIntervalSince1970 / 1200) % max(1, list.count)
+        var entries: [MemoryEntry] = []
+        for i in 0..<list.count {
+            let m = list[(i + offset) % list.count]
+            var snap = s
+            snap.memoryCaption = m.caption; snap.memoryYear = m.year
+            snap.memoryImageFile = m.file; snap.isOnThisDay = m.isOnThisDay
+            let date = Date().addingTimeInterval(Double(i) * 20 * 60)
+            entries.append(MemoryEntry(date: date, snapshot: snap, image: load(m.file), isEmpty: false))
+        }
+        completion(Timeline(entries: entries, policy: .atEnd))
+    }
+    private func load(_ file: String) -> UIImage? {
+        guard !file.isEmpty, let dir = WidgetBridge.containerURL,
+              let data = try? Data(contentsOf: dir.appendingPathComponent(file)) else { return nil }
+        return UIImage(data: data)
     }
     private func current() -> MemoryEntry {
         guard let s = WidgetBridge.load(), s.updatedAt > .distantPast else {
             return MemoryEntry(date: Date(), snapshot: .empty, image: nil, isEmpty: true)
         }
-        var image: UIImage?
-        if let f = s.memoryImageFile, let dir = WidgetBridge.containerURL,
-           let data = try? Data(contentsOf: dir.appendingPathComponent(f)) {
-            image = UIImage(data: data)
-        }
-        return MemoryEntry(date: Date(), snapshot: s, image: image, isEmpty: false)
+        return MemoryEntry(date: Date(), snapshot: s, image: load(s.memoryImageFile ?? ""), isEmpty: false)
     }
 }
 

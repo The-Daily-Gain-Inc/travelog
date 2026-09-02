@@ -17,6 +17,9 @@ struct WidgetSnapshot: Codable, Equatable {
     var memoryImageFile: String?
     /// True when the photo is from this week in a past year (vs any photo).
     var isOnThisDay: Bool = false
+    /// The rotation: the widget cycles through these during the day. The
+    /// fields above are the first one, kept for older snapshots.
+    var memories: [WidgetMemory] = []
     var updatedAt: Date
 
     static let placeholder = WidgetSnapshot(countries: 23, photos: 4_812, trips: 31,
@@ -26,6 +29,13 @@ struct WidgetSnapshot: Codable, Equatable {
     static let empty = WidgetSnapshot(countries: 0, photos: 0, trips: 0, lastTrip: nil,
                                       memoryCaption: nil, memoryYear: nil, memoryImageFile: nil,
                                       isOnThisDay: false, updatedAt: .distantPast)
+}
+
+struct WidgetMemory: Codable, Equatable {
+    var caption: String
+    var year: Int
+    var file: String
+    var isOnThisDay: Bool
 }
 
 enum WidgetBridge {

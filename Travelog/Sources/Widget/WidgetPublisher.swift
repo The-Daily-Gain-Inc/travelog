@@ -28,7 +28,9 @@ enum WidgetPublisher {
             lastTrip = "\(name) · \(latest.createdTime.formatted(.dateTime.month(.abbreviated).year()))"
         }
 
-        // On this day (±3 days, an earlier year); prefer a favorite photo.
+        // On this day (±3 days, an earlier year) when there is one, else the
+        // whole library; favorites first. A dozen get written out so the
+        // widget can shuffle through them during the day.
         let today = calendar.ordinality(of: .day, in: .year, for: .now) ?? 0
         let thisYear = calendar.component(.year, from: .now)
         let candidates = all.filter { item in
@@ -36,30 +38,45 @@ enum WidgetPublisher {
                   let day = calendar.ordinality(of: .day, in: .year, for: item.createdTime) else { return false }
             return abs(day - today) <= 3
         }
-        // Deterministic pick per day so the widget doesn't flicker between
-        // refreshes. No on-this-day match → any photo, favorites first, so the
-        // widget always has a picture.
         let onThisDay = !candidates.isEmpty
         let pool = onThisDay ? candidates : all.filter { !$0.isVideo }
-        let pick = (pool.filter(\.isFavorite).isEmpty ? pool : pool.filter(\.isFavorite))
-            .sorted { $0.driveId < $1.driveId }
-        var caption: String?, year: Int?, file: String?, isMemory = false
-        if !pick.isEmpty {
-            let item = pick[today % pick.count]
-            caption = item.album?.name
-            year = calendar.component(.year, from: item.createdTime)
-            isMemory = onThisDay
-            if let dir = WidgetBridge.containerURL,
-               let img = try? await MediaCache.shared.thumbnail(for: (item.driveId, item.name), maxPixel: 800),
-               let data = img.jpegData(compressionQuality: 0.75) {
-                let url = dir.appendingPathComponent("memory.jpg")
-                try? data.write(to: url, options: .atomic)
-                file = "memory.jpg"
+        var picks = pool.filter(\.isFavorite)
+        if picks.count < 12 { picks += pool.filter { !$0.isFavorite } }
+        // Deterministic shuffle per day: same set all day, new set tomorrow.
+        var rng = SeededGenerator(seed: UInt64(today &+ thisYear &* 1000))
+        picks = Array(picks.shuffled(using: &rng).prefix(12))
+
+        var memories: [WidgetMemory] = []
+        if let dir = WidgetBridge.containerURL {
+            for (i, item) in picks.enumerated() {
+                guard let img = try? await MediaCache.shared.thumbnail(for: (item.driveId, item.name), maxPixel: 800),
+                      let data = img.jpegData(compressionQuality: 0.75) else { continue }
+                let name = "memory_\(i).jpg"
+                try? data.write(to: dir.appendingPathComponent(name), options: .atomic)
+                memories.append(WidgetMemory(caption: item.album?.name ?? "",
+                                             year: calendar.component(.year, from: item.createdTime),
+                                             file: name, isOnThisDay: onThisDay))
             }
         }
+        let first = memories.first
 
         WidgetBridge.save(WidgetSnapshot(countries: countries, photos: photos, trips: trips,
-                                         lastTrip: lastTrip, memoryCaption: caption, memoryYear: year,
-                                         memoryImageFile: file, isOnThisDay: isMemory, updatedAt: Date()))
+                                         lastTrip: lastTrip,
+                                         memoryCaption: first?.caption, memoryYear: first?.year,
+                                         memoryImageFile: first?.file, isOnThisDay: first?.isOnThisDay ?? false,
+                                         memories: memories, updatedAt: Date()))
+    }
+}
+
+/// Tiny deterministic PRNG (SplitMix64) so the day's shuffle is stable.
+private struct SeededGenerator: RandomNumberGenerator {
+    private var state: UInt64
+    init(seed: UInt64) { state = seed &* 0x9E3779B97F4A7C15 &+ 1 }
+    mutating func next() -> UInt64 {
+        state &+= 0x9E3779B97F4A7C15
+        var z = state
+        z = (z ^ (z >> 30)) &* 0xBF58476D1CE4E5B9
+        z = (z ^ (z >> 27)) &* 0x94D049BB133111EB
+        return z ^ (z >> 31)
     }
 }
