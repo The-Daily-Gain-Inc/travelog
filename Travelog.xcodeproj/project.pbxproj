@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		089BAD313AE3F39F65943B90 /* WidgetSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0FCBB49D0807EC540E4FAB0 /* WidgetSnapshot.swift */; };
 		0AF6F0D668B1C46B0E52FEFB /* DriveService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47C695DB7BE0044C160E464F /* DriveService.swift */; };
 		205258C07696700A48A65BAF /* AlbumListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1CFA1C925C8073D60920192 /* AlbumListView.swift */; };
 		26473257DDDF62AAED7406B5 /* WorldMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 819F96FA1681D75C64444004 /* WorldMapView.swift */; };
@@ -20,6 +21,7 @@
 		7E1CD0AC9FFA253F67855A35 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FD609349D423ABB732FBC787 /* Assets.xcassets */; };
 		81471E846B6C456C9FDF6B56 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C604B71AD0C4A168DE843BA /* AuthService.swift */; };
 		838972386D8A315A160862B2 /* MockData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A4474FA291C56EAD7E60EB9 /* MockData.swift */; };
+		85A289ECE09BD6B6B3B5A4E0 /* TravelogWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 655748F6BB42A0564A29D9F8 /* TravelogWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		8912BB91F5546D9BD4E1735F /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D3577C7F5AD58EDB568B7C5 /* NetworkMonitor.swift */; };
 		8C8783B2AFFCBBC85BDC4D6E /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = B08ED756BC32FFDD8EEAA73D /* Localizable.xcstrings */; };
 		8DDE662FACC17D15FF681D7F /* CountryGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7A1B811A4F83AB52DB2E350 /* CountryGridView.swift */; };
@@ -30,15 +32,44 @@
 		B9BC54A315DB848F601EC56D /* PlaceLookup.swift in Sources */ = {isa = PBXBuildFile; fileRef = AACBF1D7CF736764515B0CE0 /* PlaceLookup.swift */; };
 		D2F1DD789A5F81C5293F9DD1 /* countries.geo.json in Resources */ = {isa = PBXBuildFile; fileRef = D0DFAEF0E24BB78E28C00F05 /* countries.geo.json */; };
 		D7E15BA089C07A6224845F76 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7B1A5CD0050DF569CCC6696 /* LibraryView.swift */; };
+		DB3D7D000F102F086B01E9D7 /* TravelogWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B958D5C9F8B0DF8BFF6A1B3 /* TravelogWidget.swift */; };
 		DDD4F52F95D6CEA5348D3AA1 /* TravelogApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8373B6E62D1C6D273C2C06B3 /* TravelogApp.swift */; };
+		EC1C5522114ECD31E61CA014 /* WidgetSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0FCBB49D0807EC540E4FAB0 /* WidgetSnapshot.swift */; };
 		F35DFD686B1AD91F8B6CC808 /* QuizView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FA3C81F09B24FB40F9C4636 /* QuizView.swift */; };
+		F531C6AC2F5E60D715B4E898 /* WidgetPublisher.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA2C83C6415C365BAA5E1EBB /* WidgetPublisher.swift */; };
 		F9045B04050CD9300D6C71F4 /* DownloadManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E04C341BB15B58B23C9B276F /* DownloadManager.swift */; };
 		FE692D4F029D74431862227B /* MediaCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62459A5F2D7A3C5124E054BC /* MediaCache.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		F08144B86363789A69E55A45 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4D078A34D8ECED6CE12AB7E9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C384BCCD1137F0A3BFDAA2DE;
+			remoteInfo = TravelogWidget;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		5ACFB8156E0EF94BC2B4A18B /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				85A289ECE09BD6B6B3B5A4E0 /* TravelogWidget.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		157A85FC24F0AD2C0E8F9F4C /* SlideshowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SlideshowView.swift; sourceTree = "<group>"; };
+		1C2D4C85AD6FEF8FE589408B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		1D3326BBEF11B3B29FE1DEB6 /* SyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncService.swift; sourceTree = "<group>"; };
+		2B958D5C9F8B0DF8BFF6A1B3 /* TravelogWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TravelogWidget.swift; sourceTree = "<group>"; };
 		2FA3C81F09B24FB40F9C4636 /* QuizView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizView.swift; sourceTree = "<group>"; };
 		4611880567FC2F8B4E564442 /* LocalLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalLibrary.swift; sourceTree = "<group>"; };
 		47C695DB7BE0044C160E464F /* DriveService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveService.swift; sourceTree = "<group>"; };
@@ -47,12 +78,14 @@
 		5458D4926B07CC42E983916A /* Travelog.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Travelog.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5D3577C7F5AD58EDB568B7C5 /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
 		62459A5F2D7A3C5124E054BC /* MediaCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaCache.swift; sourceTree = "<group>"; };
+		655748F6BB42A0564A29D9F8 /* TravelogWidget.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = TravelogWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		6DA8962B804D9E0A8CE9D7A0 /* TripsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripsView.swift; sourceTree = "<group>"; };
 		7CF68ED9AB810DE8B88C0537 /* StatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsView.swift; sourceTree = "<group>"; };
 		819F96FA1681D75C64444004 /* WorldMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorldMapView.swift; sourceTree = "<group>"; };
 		81D6AD18D5B91CF610242549 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		8373B6E62D1C6D273C2C06B3 /* TravelogApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TravelogApp.swift; sourceTree = "<group>"; };
 		8A4474FA291C56EAD7E60EB9 /* MockData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockData.swift; sourceTree = "<group>"; };
+		A189BEA5935B8D2E50FDC45C /* TravelogWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TravelogWidget.entitlements; sourceTree = "<group>"; };
 		A7B1A5CD0050DF569CCC6696 /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
 		AACBF1D7CF736764515B0CE0 /* PlaceLookup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceLookup.swift; sourceTree = "<group>"; };
 		AE341503665DAF0B47A0C774 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
@@ -61,9 +94,11 @@
 		B7143A318622759509E0DE20 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		D0DFAEF0E24BB78E28C00F05 /* countries.geo.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = countries.geo.json; sourceTree = "<group>"; };
 		D7A1B811A4F83AB52DB2E350 /* CountryGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountryGridView.swift; sourceTree = "<group>"; };
+		DA2C83C6415C365BAA5E1EBB /* WidgetPublisher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetPublisher.swift; sourceTree = "<group>"; };
 		E04C341BB15B58B23C9B276F /* DownloadManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadManager.swift; sourceTree = "<group>"; };
+		F0FCBB49D0807EC540E4FAB0 /* WidgetSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSnapshot.swift; sourceTree = "<group>"; };
 		FD609349D423ABB732FBC787 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		"TEMP_24870130-13A2-4978-BD36-A00522329C18" /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
+		"TEMP_8CC752B5-19E7-4A9E-B8E8-4E15F9A9FCAE" /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -92,6 +127,7 @@
 			isa = PBXGroup;
 			children = (
 				5458D4926B07CC42E983916A /* Travelog.app */,
+				655748F6BB42A0564A29D9F8 /* TravelogWidget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -113,6 +149,25 @@
 			path = Views;
 			sourceTree = "<group>";
 		};
+		4E3C5698F00B4882EA5B625D /* TravelogWidget */ = {
+			isa = PBXGroup;
+			children = (
+				1C2D4C85AD6FEF8FE589408B /* Info.plist */,
+				A189BEA5935B8D2E50FDC45C /* TravelogWidget.entitlements */,
+				2B958D5C9F8B0DF8BFF6A1B3 /* TravelogWidget.swift */,
+			);
+			path = TravelogWidget;
+			sourceTree = "<group>";
+		};
+		6438B94407D9304AE4D431E6 /* Widget */ = {
+			isa = PBXGroup;
+			children = (
+				DA2C83C6415C365BAA5E1EBB /* WidgetPublisher.swift */,
+				F0FCBB49D0807EC540E4FAB0 /* WidgetSnapshot.swift */,
+			);
+			path = Widget;
+			sourceTree = "<group>";
+		};
 		6A04D3B2AA249C171D3C1D7B /* Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -127,6 +182,7 @@
 			isa = PBXGroup;
 			children = (
 				129029B6F87E9F83E8C5011E /* Travelog */,
+				4E3C5698F00B4882EA5B625D /* TravelogWidget */,
 				26040B391B0D56A25D76A5D1 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -155,6 +211,7 @@
 				FBD24F6FD4CECC9BC383F3CD /* Models */,
 				73E823E8A87EAB2FCE4FD013 /* Services */,
 				2DCF8F217454157445D2451C /* Views */,
+				6438B94407D9304AE4D431E6 /* Widget */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -167,10 +224,10 @@
 			path = Models;
 			sourceTree = "<group>";
 		};
-		"TEMP_80725504-C9D0-43DB-B939-940CCF4E93DD" /* travelog */ = {
+		"TEMP_EA9F0E7E-9742-42A0-96FF-2CE6DF70B39E" /* travelog */ = {
 			isa = PBXGroup;
 			children = (
-				"TEMP_24870130-13A2-4978-BD36-A00522329C18" /* Config.xcconfig */,
+				"TEMP_8CC752B5-19E7-4A9E-B8E8-4E15F9A9FCAE" /* Config.xcconfig */,
 			);
 			path = travelog;
 			sourceTree = "<group>";
@@ -185,10 +242,12 @@
 				88B1BA6F5F06F7F69F10901E /* Sources */,
 				C89415A112FCC6A84E7CCF50 /* Resources */,
 				65C82CCEEF41525E4BC08B40 /* Frameworks */,
+				5ACFB8156E0EF94BC2B4A18B /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				6A3C328A7D6262C03E65E6CB /* PBXTargetDependency */,
 			);
 			name = Travelog;
 			packageProductDependencies = (
@@ -198,6 +257,23 @@
 			productName = Travelog;
 			productReference = 5458D4926B07CC42E983916A /* Travelog.app */;
 			productType = "com.apple.product-type.application";
+		};
+		C384BCCD1137F0A3BFDAA2DE /* TravelogWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0B7EC91BF8C1CA4D3B55C7CF /* Build configuration list for PBXNativeTarget "TravelogWidget" */;
+			buildPhases = (
+				BEB1DD7E1D2CCD12D47B63F9 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TravelogWidget;
+			packageProductDependencies = (
+			);
+			productName = TravelogWidget;
+			productReference = 655748F6BB42A0564A29D9F8 /* TravelogWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -209,6 +285,10 @@
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					4AD31A57AD7452405403424E = {
+						DevelopmentTeam = ADPUGXVDZQ;
+						ProvisioningStyle = Automatic;
+					};
+					C384BCCD1137F0A3BFDAA2DE = {
 						DevelopmentTeam = ADPUGXVDZQ;
 						ProvisioningStyle = Automatic;
 					};
@@ -233,6 +313,7 @@
 			projectRoot = "";
 			targets = (
 				4AD31A57AD7452405403424E /* Travelog */,
+				C384BCCD1137F0A3BFDAA2DE /* TravelogWidget */,
 			);
 		};
 /* End PBXProject section */
@@ -276,18 +357,60 @@
 				3FC19FA4F4CF222DA061A731 /* SyncService.swift in Sources */,
 				DDD4F52F95D6CEA5348D3AA1 /* TravelogApp.swift in Sources */,
 				40065216053C085AB8C101C6 /* TripsView.swift in Sources */,
+				F531C6AC2F5E60D715B4E898 /* WidgetPublisher.swift in Sources */,
+				EC1C5522114ECD31E61CA014 /* WidgetSnapshot.swift in Sources */,
 				26473257DDDF62AAED7406B5 /* WorldMapView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BEB1DD7E1D2CCD12D47B63F9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DB3D7D000F102F086B01E9D7 /* TravelogWidget.swift in Sources */,
+				089BAD313AE3F39F65943B90 /* WidgetSnapshot.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		6A3C328A7D6262C03E65E6CB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C384BCCD1137F0A3BFDAA2DE /* TravelogWidget */;
+			targetProxy = F08144B86363789A69E55A45 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		35653EE407E4B2AB6EDDBA52 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = TravelogWidget/TravelogWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = ADPUGXVDZQ;
+				INFOPLIST_FILE = TravelogWidget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ca.thedailygain.TravelogWidget;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		4C82268EC18626AFEA87046A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_24870130-13A2-4978-BD36-A00522329C18" /* Config.xcconfig */;
+			baseConfigurationReference = "TEMP_8CC752B5-19E7-4A9E-B8E8-4E15F9A9FCAE" /* Config.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Travelog/Travelog.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -309,9 +432,10 @@
 		};
 		ADB2DB370A1913EF04317362 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_24870130-13A2-4978-BD36-A00522329C18" /* Config.xcconfig */;
+			baseConfigurationReference = "TEMP_8CC752B5-19E7-4A9E-B8E8-4E15F9A9FCAE" /* Config.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Travelog/Travelog.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -394,6 +518,28 @@
 			};
 			name = Debug;
 		};
+		E13FC05BB5F50511D11BE1B3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = TravelogWidget/TravelogWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = ADPUGXVDZQ;
+				INFOPLIST_FILE = TravelogWidget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ca.thedailygain.TravelogWidget;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
 		F6A82CCF2246E53C6ED7D092 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -453,6 +599,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		0B7EC91BF8C1CA4D3B55C7CF /* Build configuration list for PBXNativeTarget "TravelogWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E13FC05BB5F50511D11BE1B3 /* Debug */,
+				35653EE407E4B2AB6EDDBA52 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		C5A94C89B8B133714B2C8352 /* Build configuration list for PBXProject "Travelog" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

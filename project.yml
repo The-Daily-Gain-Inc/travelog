@@ -13,13 +13,19 @@ targets:
     type: application
     platform: iOS
     sources:
-      - Travelog/Sources
+      - path: Travelog/Sources
       - Travelog/Resources
     dependencies:
       - package: GoogleSignIn
         product: GoogleSignIn
       - package: GoogleSignIn
         product: GoogleSignInSwift
+      - target: TravelogWidget
+    entitlements:
+      path: Travelog/Travelog.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.ca.thedailygain.Travelog
     settings:
       base:
         TARGETED_DEVICE_FAMILY: "1,2"
@@ -63,3 +69,30 @@ targets:
     configFiles:
       Debug: Config.xcconfig
       Release: Config.xcconfig
+
+  TravelogWidget:
+    type: app-extension
+    platform: iOS
+    sources:
+      - TravelogWidget
+      - Travelog/Sources/Widget/WidgetSnapshot.swift
+    entitlements:
+      path: TravelogWidget/TravelogWidget.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.ca.thedailygain.Travelog
+    info:
+      path: TravelogWidget/Info.plist
+      properties:
+        CFBundleDisplayName: Travelog
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        SWIFT_VERSION: 5.9
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: ADPUGXVDZQ
+        CURRENT_PROJECT_VERSION: 1
+        MARKETING_VERSION: 1.0
+        TARGETED_DEVICE_FAMILY: "1,2"
+        SKIP_INSTALL: YES

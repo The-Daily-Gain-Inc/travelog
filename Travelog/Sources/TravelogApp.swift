@@ -88,6 +88,9 @@ struct TravelogApp: App {
         }
         .modelContainer(Self.container)
         .onChange(of: scenePhase) { _, phase in
+            if phase == .active {
+                Task { await WidgetPublisher.publish(context: Self.container.mainContext) }
+            }
             if phase == .background { Self.scheduleBackgroundRefresh() }
         }
     }
