@@ -15,15 +15,17 @@ struct WidgetSnapshot: Codable, Equatable {
     var memoryCaption: String?
     var memoryYear: Int?
     var memoryImageFile: String?
+    /// True when the photo is from this week in a past year (vs any photo).
+    var isOnThisDay: Bool = false
     var updatedAt: Date
 
     static let placeholder = WidgetSnapshot(countries: 23, photos: 4_812, trips: 31,
                                             lastTrip: "Portugal · Jun 2025",
                                             memoryCaption: "Lisbon", memoryYear: 2023,
-                                            memoryImageFile: nil, updatedAt: Date())
+                                            memoryImageFile: nil, isOnThisDay: true, updatedAt: Date())
     static let empty = WidgetSnapshot(countries: 0, photos: 0, trips: 0, lastTrip: nil,
                                       memoryCaption: nil, memoryYear: nil, memoryImageFile: nil,
-                                      updatedAt: .distantPast)
+                                      isOnThisDay: false, updatedAt: .distantPast)
 }
 
 enum WidgetBridge {

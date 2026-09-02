@@ -36,14 +36,19 @@ enum WidgetPublisher {
                   let day = calendar.ordinality(of: .day, in: .year, for: item.createdTime) else { return false }
             return abs(day - today) <= 3
         }
-        // Deterministic pick per day so the widget doesn't flicker between refreshes.
-        let pick = (candidates.filter(\.isFavorite).isEmpty ? candidates : candidates.filter(\.isFavorite))
+        // Deterministic pick per day so the widget doesn't flicker between
+        // refreshes. No on-this-day match → any photo, favorites first, so the
+        // widget always has a picture.
+        let onThisDay = !candidates.isEmpty
+        let pool = onThisDay ? candidates : all.filter { !$0.isVideo }
+        let pick = (pool.filter(\.isFavorite).isEmpty ? pool : pool.filter(\.isFavorite))
             .sorted { $0.driveId < $1.driveId }
-        var caption: String?, year: Int?, file: String?
+        var caption: String?, year: Int?, file: String?, isMemory = false
         if !pick.isEmpty {
             let item = pick[today % pick.count]
             caption = item.album?.name
             year = calendar.component(.year, from: item.createdTime)
+            isMemory = onThisDay
             if let dir = WidgetBridge.containerURL,
                let img = try? await MediaCache.shared.thumbnail(for: (item.driveId, item.name), maxPixel: 800),
                let data = img.jpegData(compressionQuality: 0.75) {
@@ -55,6 +60,6 @@ enum WidgetPublisher {
 
         WidgetBridge.save(WidgetSnapshot(countries: countries, photos: photos, trips: trips,
                                          lastTrip: lastTrip, memoryCaption: caption, memoryYear: year,
-                                         memoryImageFile: file, updatedAt: Date()))
+                                         memoryImageFile: file, isOnThisDay: isMemory, updatedAt: Date()))
     }
 }

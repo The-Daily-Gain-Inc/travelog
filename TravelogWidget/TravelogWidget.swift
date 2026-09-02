@@ -49,7 +49,7 @@ struct MemoryWidgetView: View {
             VStack(alignment: .leading, spacing: 1) {
                 Label("\(s.countries) countries", systemImage: "globe.americas.fill").font(.caption.weight(.semibold))
                 Text("\(s.photos) photos · \(s.trips) trips").font(.caption2)
-                if let c = s.memoryCaption, let y = s.memoryYear { Text("On this day: \(c) \(String(y))").font(.caption2) }
+                if let c = s.memoryCaption, let y = s.memoryYear { Text("\(s.isOnThisDay ? "On this day" : "Memory"): \(c) \(String(y))").font(.caption2) }
             }
         case .accessoryInline:
             Text(s.memoryCaption.map { "On this day: \($0) \(s.memoryYear.map(String.init) ?? "")" } ?? "\(s.countries) countries visited")
@@ -77,7 +77,8 @@ struct MemoryWidgetView: View {
                 if entry.isEmpty {
                     Text("Open Travelog to sync your library").font(.caption.weight(.semibold))
                 } else if let c = s.memoryCaption, let y = s.memoryYear {
-                    Text("On this day · \(String(y))").font(.caption2.weight(.semibold)).opacity(0.85)
+                    Text(s.isOnThisDay ? "On this day · \(String(y))" : "Memory · \(String(y))")
+                        .font(.caption2.weight(.semibold)).opacity(0.85)
                     Text(c).font(.system(.title3, design: .rounded).weight(.bold)).lineLimit(1)
                 } else {
                     Text("Passport").font(.caption2.weight(.semibold)).opacity(0.85)
