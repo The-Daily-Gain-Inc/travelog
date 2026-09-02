@@ -89,6 +89,7 @@ targets:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     settings:
       base:
+        PRODUCT_BUNDLE_IDENTIFIER: ca.thedailygain.Travelog.widget
         SWIFT_VERSION: 5.9
         CODE_SIGN_STYLE: Automatic
         DEVELOPMENT_TEAM: ADPUGXVDZQ
