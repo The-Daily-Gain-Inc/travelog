@@ -13,7 +13,7 @@ struct MemoryProvider: TimelineProvider {
     func getSnapshot(in context: Context, completion: @escaping (MemoryEntry) -> Void) {
         completion(context.isPreview ? placeholder(in: context) : current())
     }
-    /// One entry per photo, 20 minutes apart, so the widget shuffles through
+    /// One entry per photo, 15 minutes apart, so the widget shuffles through
     /// the day's set; then it asks for a fresh timeline.
     func getTimeline(in context: Context, completion: @escaping (Timeline<MemoryEntry>) -> Void) {
         guard let s = WidgetBridge.load(), s.updatedAt > .distantPast else {
@@ -24,14 +24,14 @@ struct MemoryProvider: TimelineProvider {
         let list = s.memories.isEmpty ? [WidgetMemory(caption: s.memoryCaption ?? "", year: s.memoryYear ?? 0,
                                                        file: s.memoryImageFile ?? "", isOnThisDay: s.isOnThisDay)] : s.memories
         // Start at a different photo each time the timeline is rebuilt.
-        let offset = Int(Date().timeIntervalSince1970 / 1200) % max(1, list.count)
+        let offset = Int(Date().timeIntervalSince1970 / 900) % max(1, list.count)
         var entries: [MemoryEntry] = []
         for i in 0..<list.count {
             let m = list[(i + offset) % list.count]
             var snap = s
             snap.memoryCaption = m.caption; snap.memoryYear = m.year
             snap.memoryImageFile = m.file; snap.isOnThisDay = m.isOnThisDay
-            let date = Date().addingTimeInterval(Double(i) * 20 * 60)
+            let date = Date().addingTimeInterval(Double(i) * 15 * 60)
             entries.append(MemoryEntry(date: date, snapshot: snap, image: load(m.file), isEmpty: false))
         }
         completion(Timeline(entries: entries, policy: .atEnd))
@@ -82,7 +82,12 @@ struct MemoryWidgetView: View {
     private var photoCard: some View {
         ZStack(alignment: .bottomLeading) {
             if let img = entry.image {
-                Image(uiImage: img).resizable().scaledToFill()
+                // Fill the whole widget, centered, and crop the overflow —
+                // an image placed directly in a ZStack would size the widget
+                // to itself instead.
+                Color.clear
+                    .overlay(Image(uiImage: img).resizable().scaledToFill())
+                    .clipped()
                 LinearGradient(colors: [.clear, .black.opacity(0.75)], startPoint: .center, endPoint: .bottom)
             } else {
                 LinearGradient(colors: [Color(red: 0.10, green: 0.35, blue: 0.55), Color(red: 0.05, green: 0.18, blue: 0.32)],
@@ -116,6 +121,7 @@ struct MemoryWidgetView: View {
             .foregroundStyle(.white)
             .padding(12)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private func stat(_ v: String, _ l: String) -> some View {
