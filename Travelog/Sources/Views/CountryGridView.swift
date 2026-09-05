@@ -16,11 +16,24 @@ struct CountryGridView: View {
     @State private var sortDescending = false
     @State private var editingNote = false
     @State private var noteDraft = ""
+    /// The album's visible items, filtered and sorted once. Reading the
+    /// SwiftData relationship and sorting it inside a computed property ran on
+    /// every render — several times per render, since the header reads it
+    /// too — for every state change on this screen.
+    @State private var items: [MediaItem] = []
 
     private let columns = [GridItem(.adaptive(minimum: 160, maximum: 240), spacing: 4)]
 
-    private var items: [MediaItem] {
-        album.items
+    /// Changes when items are added, removed, hidden or unhidden — a plain
+    /// walk of the relationship, no sort.
+    private var membershipKey: String {
+        var hidden = 0
+        for item in album.items where item.isHidden { hidden += 1 }
+        return "\(album.items.count)-\(hidden)"
+    }
+
+    private func rebuildItems() {
+        items = album.items
             .filter { showHiddenItems || !$0.isHidden }
             .sorted {
                 sortDescending ? $0.createdTime > $1.createdTime : $0.createdTime < $1.createdTime
@@ -183,6 +196,10 @@ struct CountryGridView: View {
             .fullScreenCover(item: $startItem) { item in
                 SlideshowView(album: album, startItem: item)
             }
+            .onAppear { rebuildItems() }
+            .onChange(of: showHiddenItems) { _, _ in rebuildItems() }
+            .onChange(of: sortDescending) { _, _ in rebuildItems() }
+            .onChange(of: membershipKey) { _, _ in rebuildItems() }
             .task { await buildRegionGroups() }
             .task { await buildPostcard() }
             .alert(Text("Album note"), isPresented: $editingNote) {

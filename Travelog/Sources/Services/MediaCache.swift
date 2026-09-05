@@ -9,6 +9,24 @@ actor MediaCache {
 
     private let drive = DriveService()
     private var inFlight: [String: Task<URL, Error>] = [:]
+    /// Decoded thumbnails, so a grid cell scrolling back into view doesn't
+    /// re-read and re-decode its JPEG. ~50 MB of 600px thumbnails.
+    private let thumbnails: NSCache<NSString, UIImage> = {
+        let c = NSCache<NSString, UIImage>()
+        c.totalCostLimit = 50 * 1024 * 1024
+        return c
+    }()
+
+    /// A UIImage decodes lazily, on the main thread, the first time it is
+    /// drawn — which is exactly where a scrolling grid stutters. Decode here,
+    /// on the actor, and hand SwiftUI a bitmap that is ready to blit.
+    private static func predecoded(_ img: UIImage) -> UIImage {
+        img.preparingForDisplay() ?? img
+    }
+
+    private static func cost(_ img: UIImage) -> Int {
+        Int(img.size.width * img.scale * img.size.height * img.scale * 4)
+    }
 
     private let dir: URL = {
         let base = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
@@ -76,8 +94,14 @@ actor MediaCache {
     /// Downscaled thumbnail for grids. Photos are decoded via ImageIO; videos
     /// get a poster frame extracted from the start of the clip.
     func thumbnail(for item: (driveId: String, name: String), maxPixel: CGFloat = 600) async throws -> UIImage {
+        let cacheKey = item.driveId as NSString
+        if let img = thumbnails.object(forKey: cacheKey) { return img }
         let thumbURL = localURL(for: item.driveId + "_thumb", ext: "jpg")
-        if let data = try? Data(contentsOf: thumbURL), let img = UIImage(data: data) { return img }
+        if let data = try? Data(contentsOf: thumbURL), let img = UIImage(data: data) {
+            let ready = Self.predecoded(img)
+            thumbnails.setObject(ready, forKey: cacheKey, cost: Self.cost(ready))
+            return ready
+        }
 
         let full = try await file(for: item)
         let img: UIImage
@@ -91,7 +115,9 @@ actor MediaCache {
             img = try Self.downsample(url: full, maxPixel: maxPixel)
         }
         try? img.jpegData(compressionQuality: 0.8)?.write(to: thumbURL)
-        return img
+        let ready = Self.predecoded(img)
+        thumbnails.setObject(ready, forKey: cacheKey, cost: Self.cost(ready))
+        return ready
     }
 
     /// Full-quality-ish image for the slideshow, honoring the user's display
@@ -102,13 +128,13 @@ actor MediaCache {
             guard let img = UIImage(contentsOfFile: full.path) else {
                 throw URLError(.cannotDecodeContentData)
             }
-            return img
+            return Self.predecoded(img)
         }
         let cacheURL = localURL(for: item.driveId + "_disp\(Int(maxPixel))", ext: "jpg")
-        if let data = try? Data(contentsOf: cacheURL), let img = UIImage(data: data) { return img }
+        if let data = try? Data(contentsOf: cacheURL), let img = UIImage(data: data) { return Self.predecoded(img) }
         let img = try Self.downsample(url: full, maxPixel: maxPixel)
         try? img.jpegData(compressionQuality: 0.9)?.write(to: cacheURL)
-        return img
+        return Self.predecoded(img)
     }
 
     private static func downsample(url: URL, maxPixel: CGFloat) throws -> UIImage {
@@ -124,6 +150,7 @@ actor MediaCache {
     }
 
     func clear() {
+        thumbnails.removeAllObjects()
         try? FileManager.default.removeItem(at: dir)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
     }
