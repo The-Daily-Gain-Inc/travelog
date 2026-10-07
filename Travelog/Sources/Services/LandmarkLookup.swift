@@ -1,4 +1,5 @@
 import Foundation
+import SwiftData
 import MapKit
 import Vision
 import UIKit
@@ -16,6 +17,7 @@ final class LandmarkLookup {
     static let shared = LandmarkLookup()
 
     private var inFlight: [String: Task<String?, Never>] = [:]
+    private var backgroundPass: Task<Void, Never>?
 
     /// Classifier labels that mean "this is a landmark photo", mapped to the
     /// Maps search term used when the categorized lookup finds nothing nearby.
@@ -35,10 +37,11 @@ final class LandmarkLookup {
     /// likely a coincidence than the subject.
     nonisolated private static let radius: CLLocationDistance = 350
 
-    /// Returns the landmark name, writing the answer (or the absence of one)
+    /// Returns the spot name, writing the answer (or the absence of one)
     /// onto the item so it is never computed twice. `image` is the already
-    /// decoded photo the slideshow is displaying.
-    func landmark(for item: MediaItem, image: UIImage) async -> String? {
+    /// decoded photo the slideshow is displaying; nil for a video, which
+    /// skips the monument step and takes the geocoded spot.
+    func landmark(for item: MediaItem, image: UIImage?) async -> String? {
         if item.landmarkLookedUp { return item.landmark }
         let id = item.driveId
         if let task = inFlight[id] { return await task.value }
@@ -46,12 +49,14 @@ final class LandmarkLookup {
             item.landmarkLookedUp = true
             return nil
         }
+        let prefetched = item.landmark
         let task = Task<String?, Never> {
             let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lon)
-            if let subject = await Self.landmarkSubject(in: image),
+            if let image, let subject = await Self.landmarkSubject(in: image),
                let name = await Self.nearestLandmark(near: coordinate, subject: subject) {
                 return name
             }
+            if let prefetched { return prefetched }
             return await Self.spot(at: coordinate)
         }
         inFlight[id] = task
@@ -63,6 +68,28 @@ final class LandmarkLookup {
             item.landmarkLookedUp = true
         }
         return name
+    }
+
+    /// Geocode every photo that has no spot yet, in the background, so the
+    /// name is there the moment any slideshow reaches it instead of a second
+    /// later. Paced for the geocoder's rate limit; the monument refinement
+    /// still runs once with the picture when it is shown, so this writes the
+    /// spot but leaves `landmarkLookedUp` false. Restarted after each sync.
+    func geotagAll(context: ModelContext) {
+        backgroundPass?.cancel()
+        backgroundPass = Task { [weak self] in
+            let pending = (try? context.fetch(FetchDescriptor<MediaItem>(
+                predicate: #Predicate { $0.landmark == nil && !$0.landmarkLookedUp && $0.latitude != nil }
+            ))) ?? []
+            for item in pending {
+                guard !Task.isCancelled, self != nil else { return }
+                guard let lat = item.latitude, let lon = item.longitude, item.modelContext != nil else { continue }
+                if let name = await Self.spot(at: CLLocationCoordinate2D(latitude: lat, longitude: lon)) {
+                    item.landmark = name
+                }
+                try? await Task.sleep(nanoseconds: 1_200_000_000)
+            }
+        }
     }
 
     /// The finest named thing the geocoder knows at this position. The

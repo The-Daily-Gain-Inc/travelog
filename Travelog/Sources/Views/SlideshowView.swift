@@ -652,7 +652,7 @@ struct SlideshowView: View {
         player = nil
         image = nil
         caption = nil
-        landmark = item.landmarkLookedUp ? item.landmark : nil
+        landmark = item.landmark
         kenBurnsActive = false
         loadError = false
         slideStart = nil
@@ -669,6 +669,13 @@ struct SlideshowView: View {
             }
             guard !Task.isCancelled else { return }
             currentFileURL = url
+            if !item.landmarkLookedUp {
+                let shownIndex = newIndex
+                Task {
+                    let name = await LandmarkLookup.shared.landmark(for: item, image: nil)
+                    if index == shownIndex { landmark = name }
+                }
+            }
             let p = AVPlayer(url: url)
             p.isMuted = muteVideos
             player = p

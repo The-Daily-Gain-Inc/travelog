@@ -218,6 +218,7 @@ struct MainTabView: View {
                 demoMode = false
                 try? MockData.purge(from: modelContext)
                 await sync.sync(rootFolderName: rootFolderName, context: modelContext)
+                LandmarkLookup.shared.geotagAll(context: modelContext)
                 if UserDefaults.standard.bool(forKey: "prewarmThumbnails") {
                     let albums = (try? modelContext.fetch(FetchDescriptor<Album>())) ?? []
                     DownloadManager.shared.prewarmThumbnails(albums: albums)
@@ -232,6 +233,7 @@ struct MainTabView: View {
             if mocks.isEmpty || mocks.contains(where: { album in album.items.contains { $0.latitude == nil } }) {
                 try? MockData.seed(into: modelContext)
             }
+            LandmarkLookup.shared.geotagAll(context: modelContext)
         }
         // Ambient mode: any touch resets the idle clock; after the configured
         // quiet period the app turns into a photo frame. The observer watches
