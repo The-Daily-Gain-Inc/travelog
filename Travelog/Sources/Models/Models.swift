@@ -34,6 +34,10 @@ final class MediaItem {
     var longitude: Double?
     var isFavorite: Bool = false
     var isHidden: Bool = false
+    /// Monument in the picture, named once by LandmarkLookup; nil when the
+    /// photo isn't of one.
+    var landmark: String? = nil
+    var landmarkLookedUp: Bool = false
     var album: Album?
 
     var isVideo: Bool { mimeType.hasPrefix("video/") }

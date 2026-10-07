@@ -44,6 +44,7 @@ struct SlideshowView: View {
     @State private var isScrubbing = false
     @State private var kenBurnsActive = false
     @State private var caption: String?
+    @State private var landmark: String?
     @State private var showInfo = false
     @State private var infoPlace: String?
     @State private var slideStart: Date?
@@ -156,13 +157,20 @@ struct SlideshowView: View {
                 VStack {
                     Spacer()
                     HStack {
-                        Text(caption)
-                            .font(.subheadline.weight(.medium))
-                            .foregroundStyle(.white.opacity(0.9))
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 8)
-                            .background(.black.opacity(0.35), in: Capsule())
-                            .padding(20)
+                        VStack(alignment: .leading, spacing: 2) {
+                            if let landmark {
+                                Text(landmark)
+                                    .font(.headline)
+                            }
+                            Text(caption)
+                                .font(.subheadline.weight(.medium))
+                        }
+                        .foregroundStyle(.white.opacity(0.9))
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .background(.black.opacity(0.35), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                        .padding(20)
+                        .animation(.easeInOut(duration: 0.3), value: landmark)
                         Spacer()
                     }
                 }
@@ -494,6 +502,9 @@ struct SlideshowView: View {
             Label(item.name, systemImage: item.isVideo ? "video" : "photo")
                 .font(.subheadline.bold())
             Label(item.createdTime.formatted(date: .long, time: .shortened), systemImage: "calendar")
+            if let landmark = item.landmark {
+                Label(landmark, systemImage: "building.columns")
+            }
             if let infoPlace {
                 Label(infoPlace, systemImage: "mappin.and.ellipse")
             }
@@ -611,6 +622,7 @@ struct SlideshowView: View {
         player = nil
         image = nil
         caption = nil
+        landmark = item.landmarkLookedUp ? item.landmark : nil
         kenBurnsActive = false
         loadError = false
         slideStart = nil
@@ -658,6 +670,13 @@ struct SlideshowView: View {
                 image = loaded
             }
             if kenBurns { kenBurnsActive = true }
+            if !item.landmarkLookedUp {
+                let shownIndex = newIndex
+                Task {
+                    let name = await LandmarkLookup.shared.landmark(for: item, image: loaded)
+                    if index == shownIndex { landmark = name }
+                }
+            }
             currentFileURL = try? await MediaCache.shared.file(for: (item.driveId, item.name))
             // Prefetch the next item while this one is on screen.
             if items.count > 1 {
