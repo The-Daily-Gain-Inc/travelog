@@ -34,10 +34,12 @@ final class MediaItem {
     var longitude: Double?
     var isFavorite: Bool = false
     var isHidden: Bool = false
-    /// The spot the photo was taken at (monument, square, river, street),
-    /// named once by LandmarkLookup; nil when it has no GPS or nothing nearby
-    /// has a name.
+    /// Where the photo was taken, one level finer than the city (square,
+    /// river, street, district), geocoded once by LandmarkLookup.
+    var spot: String? = nil
+    /// The monument / landmark / castle in the picture, when there is one.
     var landmark: String? = nil
+    /// Both lookups have run for this item (nothing to retry).
     var landmarkLookedUp: Bool = false
     var album: Album?
 

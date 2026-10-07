@@ -4,19 +4,20 @@ import MapKit
 import Vision
 import UIKit
 
-/// Names the spot a photo was taken at — "Stephansplatz", "Danube", "Pont
-/// Neuf" — one level finer than the "City, Country" caption. Two free signals:
-/// when Apple's on-device image classifier sees a landmark-type subject
-/// (castle, bridge, statue, cathedral…) Apple Maps is asked for the closest
-/// such place, which names the monument itself; otherwise the position is
-/// reverse-geocoded and its area of interest, river/sea, named place, street
-/// or district is used, so every geotagged photo gets a spot. Results are
-/// stored on the MediaItem so each photo is examined once.
+/// Names where a photo was taken and what it shows, from free signals:
+///  - spot: the position reverse-geocoded to its area of interest, river/sea,
+///    named place, street or district ("Stephansplatz", "Danube") — every
+///    geotagged photo gets one;
+///  - landmark: the monument / castle / bridge in the picture, from Apple
+///    Maps' landmark places right next to the camera, or — when the on-device
+///    image classifier sees a landmark-type subject — the closest place of
+///    that kind a little farther out.
+/// Both are stored on the MediaItem so each photo is examined once.
 @MainActor
 final class LandmarkLookup {
     static let shared = LandmarkLookup()
 
-    private var inFlight: [String: Task<String?, Never>] = [:]
+    private var inFlight: [String: Task<(String?, String?), Never>] = [:]
     private var backgroundPass: Task<Void, Never>?
 
     /// Classifier labels that mean "this is a landmark photo", mapped to the
@@ -37,37 +38,38 @@ final class LandmarkLookup {
     /// likely a coincidence than the subject.
     nonisolated private static let radius: CLLocationDistance = 350
 
-    /// Returns the spot name, writing the answer (or the absence of one)
-    /// onto the item so it is never computed twice. `image` is the already
-    /// decoded photo the slideshow is displaying; nil for a video, which
-    /// skips the monument step and takes the geocoded spot.
-    func landmark(for item: MediaItem, image: UIImage?) async -> String? {
-        if item.landmarkLookedUp { return item.landmark }
+    /// Fills in the item's `spot` and `landmark` (either may stay nil) and
+    /// marks it looked up so neither is computed twice. `image` is the
+    /// already decoded photo the slideshow is displaying; nil for a video,
+    /// which skips the classifier step.
+    func resolve(_ item: MediaItem, image: UIImage?) async {
+        if item.landmarkLookedUp { return }
         let id = item.driveId
-        if let task = inFlight[id] { return await task.value }
+        if let task = inFlight[id] { _ = await task.value; return }
         guard let lat = item.latitude, let lon = item.longitude else {
             item.landmarkLookedUp = true
-            return nil
+            return
         }
-        let prefetched = item.landmark
-        let task = Task<String?, Never> {
+        let knownSpot = item.spot
+        let task = Task<(String?, String?), Never> {
             let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lon)
-            if let image, let subject = await Self.landmarkSubject(in: image),
-               let name = await Self.nearestLandmark(near: coordinate, subject: subject) {
-                return name
+            async let spot = knownSpot == nil ? Self.spot(at: coordinate) : knownSpot
+            var landmark = await Self.landmarkAtCamera(coordinate)
+            if landmark == nil, let image, let subject = await Self.landmarkSubject(in: image) {
+                landmark = await Self.nearestLandmark(near: coordinate, subject: subject)
             }
-            if let prefetched { return prefetched }
-            return await Self.spot(at: coordinate)
+            return (await spot, landmark)
         }
         inFlight[id] = task
-        let name = await task.value
+        let (spot, landmark) = await task.value
         inFlight[id] = nil
         // The item may have been deleted by a sync while we were looking.
         if item.modelContext != nil {
-            item.landmark = name
+            item.spot = spot
+            // A landmark that is just the spot's name again adds nothing.
+            item.landmark = landmark == spot ? nil : landmark
             item.landmarkLookedUp = true
         }
-        return name
     }
 
     /// Geocode every photo that has no spot yet, in the background, so the
@@ -79,13 +81,13 @@ final class LandmarkLookup {
         backgroundPass?.cancel()
         backgroundPass = Task { [weak self] in
             let pending = (try? context.fetch(FetchDescriptor<MediaItem>(
-                predicate: #Predicate { $0.landmark == nil && !$0.landmarkLookedUp && $0.latitude != nil }
+                predicate: #Predicate { $0.spot == nil && !$0.landmarkLookedUp && $0.latitude != nil }
             ))) ?? []
             for item in pending {
                 guard !Task.isCancelled, self != nil else { return }
                 guard let lat = item.latitude, let lon = item.longitude, item.modelContext != nil else { continue }
                 if let name = await Self.spot(at: CLLocationCoordinate2D(latitude: lat, longitude: lon)) {
-                    item.landmark = name
+                    item.spot = name
                 }
                 try? await Task.sleep(nanoseconds: 1_200_000_000)
             }
@@ -122,30 +124,47 @@ final class LandmarkLookup {
         }.value
     }
 
-    /// Closest landmark to the camera position: first among Maps' landmark
-    /// categories, then by searching Maps for the subject the classifier saw
-    /// ("bridge", "cathedral") so places Maps doesn't categorize as landmarks
-    /// still resolve.
-    nonisolated private static func nearestLandmark(near center: CLLocationCoordinate2D,
-                                                    subject: String) async -> String? {
+    nonisolated private static func nearest(_ items: [MKMapItem], to center: CLLocationCoordinate2D,
+                                            within limit: CLLocationDistance) -> String? {
         let origin = CLLocation(latitude: center.latitude, longitude: center.longitude)
-        func nearest(_ items: [MKMapItem]) -> String? {
-            items.compactMap { item -> (String, CLLocationDistance)? in
-                guard let name = item.name, !name.isEmpty, let loc = item.placemark.location else { return nil }
-                let d = loc.distance(from: origin)
-                return d <= radius ? (name, d) : nil
-            }
-            .min { $0.1 < $1.1 }?.0
+        return items.compactMap { item -> (String, CLLocationDistance)? in
+            guard let name = item.name, !name.isEmpty, let loc = item.placemark.location else { return nil }
+            let d = loc.distance(from: origin)
+            return d <= limit ? (name, d) : nil
         }
+        .min { $0.1 < $1.1 }?.0
+    }
 
+    nonisolated private static var landmarkCategories: [MKPointOfInterestCategory] {
         var categories: [MKPointOfInterestCategory] = [.museum, .nationalPark, .stadium, .amusementPark, .zoo, .aquarium]
         if #available(iOS 18.0, *) {
             categories += [.landmark, .nationalMonument, .castle, .fortress]
         }
+        return categories
+    }
+
+    /// A Maps landmark the camera was standing at (within 150 m) — close
+    /// enough that it is the subject whatever the picture looks like, so no
+    /// classifier is needed. Runs for videos too.
+    nonisolated private static func landmarkAtCamera(_ center: CLLocationCoordinate2D) async -> String? {
+        let limit: CLLocationDistance = 150
+        let poi = await MKLocalPointsOfInterestRequest(center: center, radius: limit)
+        poi.pointOfInterestFilter = MKPointOfInterestFilter(including: landmarkCategories)
+        guard let response = try? await MKLocalSearch(request: poi).start() else { return nil }
+        return nearest(response.mapItems, to: center, within: limit)
+    }
+
+    /// Closest landmark a little farther out, allowed because the classifier
+    /// saw one in the picture: first among Maps' landmark categories, then by
+    /// searching Maps for the subject the classifier saw ("bridge",
+    /// "cathedral") so places Maps doesn't categorize as landmarks still
+    /// resolve.
+    nonisolated private static func nearestLandmark(near center: CLLocationCoordinate2D,
+                                                    subject: String) async -> String? {
         let poi = await MKLocalPointsOfInterestRequest(center: center, radius: radius)
-        poi.pointOfInterestFilter = MKPointOfInterestFilter(including: categories)
+        poi.pointOfInterestFilter = MKPointOfInterestFilter(including: landmarkCategories)
         if let response = try? await MKLocalSearch(request: poi).start(),
-           let name = nearest(response.mapItems) {
+           let name = nearest(response.mapItems, to: center, within: radius) {
             return name
         }
 
@@ -155,6 +174,6 @@ final class LandmarkLookup {
         search.region = MKCoordinateRegion(center: center, latitudinalMeters: radius * 2, longitudinalMeters: radius * 2)
         search.resultTypes = .pointOfInterest
         guard let response = try? await MKLocalSearch(request: search).start() else { return nil }
-        return nearest(response.mapItems)
+        return nearest(response.mapItems, to: center, within: radius)
     }
 }

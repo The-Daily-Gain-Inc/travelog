@@ -48,6 +48,7 @@ struct SlideshowView: View {
     @State private var isScrubbing = false
     @State private var kenBurnsActive = false
     @State private var caption: String?
+    /// Bold line above the caption: the monument when there is one, else the spot.
     @State private var landmark: String?
     @State private var showInfo = false
     @State private var infoPlace: String?
@@ -535,6 +536,9 @@ struct SlideshowView: View {
             if let landmark = item.landmark {
                 Label(landmark, systemImage: "building.columns")
             }
+            if let spot = item.spot {
+                Label(spot, systemImage: "signpost.right")
+            }
             if let infoPlace {
                 Label(infoPlace, systemImage: "mappin.and.ellipse")
             }
@@ -652,7 +656,7 @@ struct SlideshowView: View {
         player = nil
         image = nil
         caption = nil
-        landmark = item.landmark
+        landmark = item.landmark ?? item.spot
         kenBurnsActive = false
         loadError = false
         slideStart = nil
@@ -672,8 +676,8 @@ struct SlideshowView: View {
             if !item.landmarkLookedUp {
                 let shownIndex = newIndex
                 Task {
-                    let name = await LandmarkLookup.shared.landmark(for: item, image: nil)
-                    if index == shownIndex { landmark = name }
+                    await LandmarkLookup.shared.resolve(item, image: nil)
+                    if index == shownIndex { refreshSpotCaption(for: item) }
                 }
             }
             let p = AVPlayer(url: url)
@@ -710,8 +714,8 @@ struct SlideshowView: View {
             if !item.landmarkLookedUp {
                 let shownIndex = newIndex
                 Task {
-                    let name = await LandmarkLookup.shared.landmark(for: item, image: loaded)
-                    if index == shownIndex { landmark = name }
+                    await LandmarkLookup.shared.resolve(item, image: loaded)
+                    if index == shownIndex { refreshSpotCaption(for: item) }
                 }
             }
             currentFileURL = try? await MediaCache.shared.file(for: (item.driveId, item.name))
@@ -724,6 +728,8 @@ struct SlideshowView: View {
         }
     }
 
+    /// Caption line: "[spot ·] City, Country · Month Year" — the spot joins
+    /// this line when the monument takes the bold line above it.
     private func updateCaption(for item: MediaItem) {
         let date = item.createdTime.formatted(.dateTime.month(.wide).year())
         caption = date
@@ -732,8 +738,17 @@ struct SlideshowView: View {
         Task {
             if let place = await PlaceLookup.shared.place(latitude: lat, longitude: lon),
                index == shownIndex {
-                caption = "\(place) · \(date)"
+                caption = [item.landmark != nil ? item.spot : nil, place, date].compactMap { $0 }.joined(separator: " · ")
             }
+        }
+    }
+
+    /// After the lookups land: promote the monument to the bold line and the
+    /// spot into the caption, or the spot to the bold line.
+    private func refreshSpotCaption(for item: MediaItem) {
+        landmark = item.landmark ?? item.spot
+        if item.landmark != nil, let spot = item.spot, let caption, !caption.hasPrefix(spot) {
+            self.caption = "\(spot) · \(caption)"
         }
     }
 }
