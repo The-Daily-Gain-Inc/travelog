@@ -3,14 +3,14 @@ import MapKit
 import Vision
 import UIKit
 
-/// Names the monument in a photo, when there is one, from two free signals:
-/// Apple's on-device image classifier says whether the picture even shows a
-/// landmark-type subject (castle, bridge, statue, cathedral…), and only then
-/// does Apple Maps get asked for the closest such place to where the photo
-/// was taken. The classifier gate is what keeps a selfie or a lunch shot taken
-/// beside the Colosseum from being labelled "Colosseum". Photos without GPS,
-/// or whose subject isn't a landmark, get nothing — better blank than wrong.
-/// Results are stored on the MediaItem so each photo is examined once.
+/// Names the spot a photo was taken at — "Stephansplatz", "Danube", "Pont
+/// Neuf" — one level finer than the "City, Country" caption. Two free signals:
+/// when Apple's on-device image classifier sees a landmark-type subject
+/// (castle, bridge, statue, cathedral…) Apple Maps is asked for the closest
+/// such place, which names the monument itself; otherwise the position is
+/// reverse-geocoded and its area of interest, river/sea, named place, street
+/// or district is used, so every geotagged photo gets a spot. Results are
+/// stored on the MediaItem so each photo is examined once.
 @MainActor
 final class LandmarkLookup {
     static let shared = LandmarkLookup()
@@ -47,9 +47,12 @@ final class LandmarkLookup {
             return nil
         }
         let task = Task<String?, Never> {
-            guard let subject = await Self.landmarkSubject(in: image) else { return nil }
-            return await Self.nearestLandmark(
-                near: CLLocationCoordinate2D(latitude: lat, longitude: lon), subject: subject)
+            let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+            if let subject = await Self.landmarkSubject(in: image),
+               let name = await Self.nearestLandmark(near: coordinate, subject: subject) {
+                return name
+            }
+            return await Self.spot(at: coordinate)
         }
         inFlight[id] = task
         let name = await task.value
@@ -60,6 +63,17 @@ final class LandmarkLookup {
             item.landmarkLookedUp = true
         }
         return name
+    }
+
+    /// The finest named thing the geocoder knows at this position. The
+    /// placemark's `name` is skipped when it is just a street address.
+    nonisolated private static func spot(at coordinate: CLLocationCoordinate2D) async -> String? {
+        let location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+        guard let mark = try? await CLGeocoder().reverseGeocodeLocation(location).first else { return nil }
+        let name = mark.name.flatMap { $0.rangeOfCharacter(from: .decimalDigits) == nil ? $0 : nil }
+        let candidates = [mark.areasOfInterest?.first, mark.inlandWater, mark.ocean,
+                          name, mark.thoroughfare, mark.subLocality]
+        return candidates.compactMap { $0 }.first { $0 != mark.locality && $0 != mark.country }
     }
 
     /// The strongest landmark-type label the classifier is confident about,

@@ -34,8 +34,9 @@ final class MediaItem {
     var longitude: Double?
     var isFavorite: Bool = false
     var isHidden: Bool = false
-    /// Monument in the picture, named once by LandmarkLookup; nil when the
-    /// photo isn't of one.
+    /// The spot the photo was taken at (monument, square, river, street),
+    /// named once by LandmarkLookup; nil when it has no GPS or nothing nearby
+    /// has a name.
     var landmark: String? = nil
     var landmarkLookedUp: Bool = false
     var album: Album?

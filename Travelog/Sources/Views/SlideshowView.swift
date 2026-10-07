@@ -33,6 +33,10 @@ struct SlideshowView: View {
     }
 
     @Environment(\.dismiss) private var dismiss
+    /// Phone-width layouts: the controls were laid out for an iPad and ran
+    /// off both edges of an iPhone screen.
+    @Environment(\.horizontalSizeClass) private var sizeClass
+    private var isCompact: Bool { sizeClass == .compact }
 
     @State private var index = 0
     @State private var image: UIImage?
@@ -115,10 +119,17 @@ struct SlideshowView: View {
             Color.black.ignoresSafeArea()
 
             // Blurred fill behind the photo instead of black letterboxing.
+            // Laid as an overlay on a clear fill: a scaledToFill image reports
+            // its overflowing size to the ZStack, which then grew past the
+            // screen and pushed the photo and controls off a phone's edges.
             if player == nil, let image {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFill()
+                Color.clear
+                    .overlay {
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFill()
+                    }
+                    .clipped()
                     .blur(radius: 70)
                     .opacity(0.55)
                     .ignoresSafeArea()
@@ -331,7 +342,7 @@ struct SlideshowView: View {
             if showInfo, let item = currentItem {
                 HStack {
                     infoPanel(for: item)
-                        .padding(.leading, 24)
+                        .padding(.leading, isCompact ? 12 : 24)
                     Spacer()
                 }
             }
@@ -340,8 +351,8 @@ struct SlideshowView: View {
                 HStack {
                     Spacer()
                     miniMap(coordinate: coordinate)
-                        .padding(.trailing, 24)
-                        .padding(.bottom, 16)
+                        .padding(.trailing, isCompact ? 12 : 24)
+                        .padding(.bottom, isCompact ? 8 : 16)
                 }
             }
             filmstrip
@@ -397,13 +408,14 @@ struct SlideshowView: View {
             Spacer()
             Text("\(title) · \(index + 1)/\(items.count)")
                 .font(.headline)
+                .lineLimit(1)
                 .foregroundStyle(.white)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
                 .background(.ultraThinMaterial.opacity(0.7), in: Capsule())
                 .environment(\.colorScheme, .dark)
         }
-        .padding(24)
+        .padding(isCompact ? 16 : 24)
     }
 
     private var bottomBar: some View {
@@ -420,51 +432,69 @@ struct SlideshowView: View {
                 .tint(.white)
             }
 
-            HStack(spacing: 8) {
-                optionsMenu
-                Spacer()
-                HStack(spacing: 36) {
-                    controlButton("backward.end.fill", size: 26) { advance(by: -1) }
-                        .accessibilityLabel(Text("Previous photo"))
-                    controlButton(isPlaying ? "pause.circle.fill" : "play.circle.fill", size: 56) { togglePlay() }
-                        .accessibilityLabel(isPlaying ? Text("Pause") : Text("Play"))
-                    controlButton("forward.end.fill", size: 26) { advance(by: 1) }
-                        .accessibilityLabel(Text("Next photo"))
+            if isCompact {
+                // Two rows on a phone: transport in the middle, the rest below.
+                transportControls
+                HStack {
+                    optionsMenu
+                    Spacer()
+                    secondaryControls
                 }
-                Spacer()
-                HStack(spacing: 20) {
-                    controlButton("rotate.right", size: 20) {
-                        withAnimation(.easeInOut(duration: 0.25)) {
-                            photoRotation += .degrees(90)
-                        }
-                    }
-                    Button {
-                        currentItem?.isFavorite.toggle()
-                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                        scheduleControlsAutoHide()
-                    } label: {
-                        Image(systemName: currentItem?.isFavorite == true ? "heart.fill" : "heart")
-                            .font(.system(size: 22))
-                            .foregroundStyle(currentItem?.isFavorite == true ? .red : .white.opacity(0.9))
-                    }
-                    controlButton("eye.slash", size: 20) {
-                        currentItem?.isHidden = true
-                        // The list re-filters, so the same index is now the next item.
-                        advance(to: index)
-                    }
-                    controlButton(showsMiniMap ? "map.fill" : "map", size: 22) {
-                        withAnimation { showsMiniMap.toggle() }
-                        scheduleControlsAutoHide()
-                    }
+            } else {
+                HStack(spacing: 8) {
+                    optionsMenu
+                    Spacer()
+                    transportControls
+                    Spacer()
+                    secondaryControls
                 }
             }
         }
-        .padding(.horizontal, 28)
-        .padding(.vertical, 18)
+        .padding(.horizontal, isCompact ? 20 : 28)
+        .padding(.vertical, isCompact ? 14 : 18)
         .background(.ultraThinMaterial.opacity(0.75), in: RoundedRectangle(cornerRadius: 24))
         .environment(\.colorScheme, .dark)
-        .padding(.horizontal, 24)
-        .padding(.bottom, 24)
+        .padding(.horizontal, isCompact ? 12 : 24)
+        .padding(.bottom, isCompact ? 12 : 24)
+    }
+
+    private var transportControls: some View {
+        HStack(spacing: 36) {
+            controlButton("backward.end.fill", size: 26) { advance(by: -1) }
+                .accessibilityLabel(Text("Previous photo"))
+            controlButton(isPlaying ? "pause.circle.fill" : "play.circle.fill", size: 56) { togglePlay() }
+                .accessibilityLabel(isPlaying ? Text("Pause") : Text("Play"))
+            controlButton("forward.end.fill", size: 26) { advance(by: 1) }
+                .accessibilityLabel(Text("Next photo"))
+        }
+    }
+
+    private var secondaryControls: some View {
+        HStack(spacing: 20) {
+            controlButton("rotate.right", size: 20) {
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    photoRotation += .degrees(90)
+                }
+            }
+            Button {
+                currentItem?.isFavorite.toggle()
+                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                scheduleControlsAutoHide()
+            } label: {
+                Image(systemName: currentItem?.isFavorite == true ? "heart.fill" : "heart")
+                    .font(.system(size: 22))
+                    .foregroundStyle(currentItem?.isFavorite == true ? .red : .white.opacity(0.9))
+            }
+            controlButton("eye.slash", size: 20) {
+                currentItem?.isHidden = true
+                // The list re-filters, so the same index is now the next item.
+                advance(to: index)
+            }
+            controlButton(showsMiniMap ? "map.fill" : "map", size: 22) {
+                withAnimation { showsMiniMap.toggle() }
+                scheduleControlsAutoHide()
+            }
+        }
     }
 
     private var optionsMenu: some View {
@@ -543,7 +573,7 @@ struct SlideshowView: View {
         }
         .mapStyle(.imagery(elevation: .flat))
         .allowsHitTesting(false)
-        .frame(width: 230, height: 160)
+        .frame(width: isCompact ? 160 : 230, height: isCompact ? 110 : 160)
         .clipShape(RoundedRectangle(cornerRadius: 18))
         .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(.white.opacity(0.35), lineWidth: 1))
         .shadow(radius: 12)
